@@ -60,6 +60,8 @@
 | `jina-embeddings-v2-small` | 512d | 8K |
 | `all-mpnet-base-v2` | 768d | 512 |
 | `all-MiniLM-L6-v2` | 384d | 256 |
+## Be wary of each ctx settings as it might affect the recalls Quality! if you and your assistants messages average at 1-2k tokens per exchange
+then set to atleast 1500 tokens ctx on the mebeddings!
 
 ### 🎭 Personas & User Loadouts
 - Create and switch between multiple **AI personas** with custom system prompts, avatars, and names
@@ -96,22 +98,16 @@
 
 ### Requirements
 - Not all settings is an all in one fit! You gotta know how to balance the filters and rerankers and embedding according or suited for your own systems and usage! The default settings here might not work for you.
-- Python 3.10+
+- Python 3.10+ (Recommended 3.11 as i had not encountered problems with the libs)
 - Windows (launcher is a `.bat` file)
 - KoboldAI running locally **or** an OpenRouter API key
 
 ### Installation
-
-1. Clone the repo:
-```bash
-git clone https://github.com/yourusername/vela.git
-cd vela
-```
-
-2. Run the launcher — it handles everything automatically:
+Run the launcher — it handles everything automatically (I think, maybe, or.. no guarantees tho.):
 ```
 LAUNCHER.bat
 ```
+-if all else fail you gotta install them manually the missing components as we have different directories I cant make a simple all in one pip install.
 
 The launcher will:
 - ✅ Check for Python
@@ -120,7 +116,7 @@ The launcher will:
 - ✅ Run a Flake8 lint check on `app.py`
 - ✅ Start the Flask server at `http://127.0.0.1:5000`
 
-### Manual Install (optional)
+### Manual Install (If all else fails with auto installs)
 ```bash
 pip install flask flask-cors fuzzywuzzy rapidfuzz requests python-dateutil ddgs tiktoken sentence-transformers faiss-cpu numpy beautifulsoup4
 ```
@@ -131,7 +127,7 @@ pip install flask flask-cors fuzzywuzzy rapidfuzz requests python-dateutil ddgs 
 
 Every system is different — what works for me might not work for you. The default settings are a starting point, not a recommendation. Tweak the embedding models, reranker, and memory filters based on your own hardware and use case. When in doubt, start with the defaults and adjust one thing at a time.
 
-> 📺 A YouTube tutorial is coming eventually... maybe. No promises. (I'm busy gooning.)
+> 📺 A YouTube tutorial is coming eventually... maybe. No promises. 
 
 ---
 
