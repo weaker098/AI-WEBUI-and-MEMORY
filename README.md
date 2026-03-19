@@ -10,15 +10,15 @@ A simple wrapper made for **KoboldAI** and **OpenRouter** with short-term and lo
 
 <table>
   <tr>
-    <td><img src="images/UI1.png" width="500"/></td>
-    <td><img src="images/UI2.png" width="380"/></td>
+    <td><img src="images/UI1.png" width="450"/></td>
+    <td><img src="images/UI2.png" width="450"/></td>
   </tr>
   <tr>
-    <td><img src="images/UI3.png" width="380"/></td>
-    <td><img src="images/UI4.png" width="380"/></td>
+    <td><img src="images/UI3.png" width="450"/></td>
+    <td><img src="images/UI4.png" width="450"/></td>
   </tr>
   <tr>
-    <td colspan="2" align="center"><img src="images/UI5.png" width="380"/></td>
+    <td colspan="2" align="center"><img src="images/UI5.png" width="450"/></td>
   </tr>
 </table>
 
