@@ -1,0 +1,19 @@
+{
+    "llm_api_endpoint": "http://127.0.0.1:5000/v1/chat/completions",
+    "llm_model_name": "",
+    "llm_api_key": "",
+    "enable_scraping": true,
+    "scraping_word_limit": 3100,
+    "search_max_results": 3,
+    "fuzzy_match_threshold": 95,
+    "backend_mode": "kobold",
+    "reasoning_enabled": false,
+    "vision_enabled": false,
+    "kobold_endpoint": "http://127.0.0.1:5000/v1/chat/completions",
+    "openrouter_endpoint": "https://openrouter.ai/api/v1/chat/completions",
+    "openrouter_model": "",
+    "openrouter_api_key": "",
+    "openrouter_max_tokens": 1024,
+    "openrouter_temperature": 0.7,
+    "openrouter_top_p": 0.9
+}

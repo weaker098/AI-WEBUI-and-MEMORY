@@ -1,0 +1,15 @@
+{
+    "scrapeable_domains": [
+        "wikipedia.org",
+        "fandom.com"
+    ],
+    "search_phrase_word_count": 10,
+    "search_tool_trigger": "<tool_search>",
+    "search_tool_closer": "</tool_search>",
+    "recall_tool_trigger": "<tool_recall>",
+    "recall_tool_closer": "</tool_recall>",
+    "search_result_header": "[Search Results]:",
+    "recall_result_header": "[Recall Results]:",
+    "persist_search_results": true,
+    "search_result_pinned": false
+}

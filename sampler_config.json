@@ -1,0 +1,6 @@
+{
+    "top_p": 0.7,
+    "top_k": 40.0,
+    "min_p": 0.05,
+    "repetition_penalty": 1.05
+}

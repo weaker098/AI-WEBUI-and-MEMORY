@@ -1,0 +1,7 @@
+{
+    "Default": {
+        "endpoint": "http://127.0.0.1:5001/v1/chat/completions",
+        "model": "",
+        "api_key": ""
+    }
+}

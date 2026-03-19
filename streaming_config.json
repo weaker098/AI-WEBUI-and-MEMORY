@@ -1,0 +1,6 @@
+{
+    "streamingDelayEnabled": true,
+    "charDelay": 5,
+    "punctuationDelay": 0,
+    "commaDelay": 0
+}

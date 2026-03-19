@@ -1,0 +1,8 @@
+{
+    "Default": {
+        "display_name": "Alex",
+        "avatar_emoji": "\u2744\ufe0f",
+        "avatar_image": "user_Default_9a5ed5.png",
+        "persona_prompt": "The user is Alex, a traumatized soldier with PTSD."
+    }
+}

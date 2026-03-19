@@ -1,0 +1,8 @@
+{
+    "max_chat_messages": 50,
+    "llm_max_tokens": 1024,
+    "resonance_enabled": true,
+    "coding_mode_enabled": false,
+    "ghost_memory_enabled": true,
+    "precision_mode_enabled": false
+}

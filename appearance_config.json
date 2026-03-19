@@ -1,0 +1,19 @@
+{
+    "assistantAvatar": "\ud83d\udc3a",
+    "assistantAvatarImg": null,
+    "thinkingIndicator": "\ud83e\udd8a",
+    "avatarSize": 60,
+    "fontSize": 15,
+    "thinkVisibility": "visible",
+    "vanillaMode": "off",
+    "colors": {
+        "plain": "#fffb80",
+        "bold": "#ffffff",
+        "italic": "#ffffff"
+    },
+    "assistantAvatarShape": "rounded",
+    "userAvatarShape": "rounded",
+    "panelsVisible": true,
+    "thinkOpenToken": "",
+    "thinkCloseToken": ""
+}

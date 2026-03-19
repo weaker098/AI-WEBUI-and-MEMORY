@@ -1,0 +1,51 @@
+{
+  "sanity_check_enabled": true,
+  "sanity_check_intent_enabled": true,
+  "sanity_check_intent_threshold": 0.4,
+  "sanity_check_content_threshold": 0.25,
+  "sanity_check_recall_phrases": "do you remember, what did we talk about, recall our conversation, tell me about, what did I say, when did we discuss, yesterday we, last time, that time when",
+  "sanity_check_buffer_multiplier": 2,
+  "sanity_check_show_scores": true,
+  "sanity_check_negative_phrases": "good morning, good evening, good night, good afternoon, hello there, hey there, hi there, how are you, what's up, how's it going, hey how are you, good to see you, nice to meet you, how have you been",
+  "zeroshot_intent_enabled": true,
+  "zeroshot_model": "deberta-base",
+  "zeroshot_ctx_length": 192,
+  "zeroshot_threshold_enabled": true,
+  "zeroshot_entailment_threshold": 0.75,
+  "zeroshot_aggregation": "max",
+  "zeroshot_premise_example": "do you remember when we talked about pizza?",
+  "zeroshot_hypotheses": [
+    "the user wants to recall a past conversation.",
+    "the user is asking about something that was discussed before.",
+    "the user wants to remember something from a previous chat."
+  ],
+  "zeroshot_score_floor": 0.1,
+  "zeroshot_top_n_hypotheses": 0,
+  "zeroshot_model_presets": {
+    "deberta-base": {
+      "threshold": 0.8,
+      "aggregation": "avg",
+      "score_floor": 0.1
+    },
+    "deberta-xsmall": {
+      "threshold": 0.65,
+      "aggregation": "max",
+      "score_floor": 0.1
+    },
+    "nli-minilm-l6": {
+      "threshold": 0.75,
+      "aggregation": "max",
+      "score_floor": 0.1
+    },
+    "distilbert-mnli": {
+      "threshold": 0.5,
+      "aggregation": "max",
+      "score_floor": 0.05
+    },
+    "bart-large-mnli": {
+      "threshold": 0.8,
+      "aggregation": "avg",
+      "score_floor": 0.1
+    }
+  }
+}
