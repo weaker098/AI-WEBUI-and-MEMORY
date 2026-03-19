@@ -60,8 +60,7 @@
 | `jina-embeddings-v2-small` | 512d | 8K |
 | `all-mpnet-base-v2` | 768d | 512 |
 | `all-MiniLM-L6-v2` | 384d | 256 |
-## Be wary of each ctx settings as it might affect the recalls Quality! if you and your assistants messages average at 1-2k tokens per exchange
-then set to atleast 1500 tokens ctx on the mebeddings!
+## Be wary of each ctx settings as it might affect the recalls Quality! if you and your assistants messages average at 1-2k tokens per exchange then set to atleast 1500 tokens ctx on the mebeddings!
 
 ### 🎭 Personas & User Loadouts
 - Create and switch between multiple **AI personas** with custom system prompts, avatars, and names
