@@ -22,13 +22,15 @@
     <td><img src="images/UI6.png" width="450"/></td>
   </tr>
   <tr>
-    <td colspan="2" align="center"><img src="images/UI7.png" width="450"/></td>
+    <td><img src="images/UI7.png" width="450"/></td>
+    <td><img src="images/UI8.png" width="450"/></td>
   </tr>
 </table>
 
 </div>
 
 ---
+
 
 ## ✨ Features
 
