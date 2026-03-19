@@ -1,5 +1,25 @@
-# My Personal AI wrapper.
-A simple Wrapper that is made for Kobold AI and Openrouter, this is a simple project I created has short term memory and long term memory
+# My Personal AI Wrapper
 
+A simple wrapper made for **KoboldAI** and **OpenRouter** with short-term and long-term memory support.
 
-<image src= "images/UI1.png" height= "600" width= "600"> <image src= "images/UI2.png" height= "600" width= "600"> <image src= "images/UI3.png" height= "600" width= "600"> <image src= "images/UI4.png" height= "600" width= "600"> <image src= "images/UI5.png" height= "600" width= "600">
+---
+
+## Screenshots
+
+<div align="center">
+
+<table>
+  <tr>
+    <td><img src="images/UI1.png" width="500"/></td>
+    <td><img src="images/UI2.png" width="380"/></td>
+  </tr>
+  <tr>
+    <td><img src="images/UI3.png" width="380"/></td>
+    <td><img src="images/UI4.png" width="380"/></td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center"><img src="images/UI5.png" width="380"/></td>
+  </tr>
+</table>
+
+</div>
