@@ -1,7 +1,6 @@
 # 🦊 Vela — Local AI Chat Interface (note this my personal app i use daily don't take it too seriously if there are bugs report it to me.)
 
-> A feature-rich local AI frontend for **KoboldAI** and **OpenRouter**, built with Flask + vanilla JS. Comes with semantic long-term memory, web search, persona/user loadouts, streaming responses, and a whole lot more. Sharing this cause i need feedbacks on what to improve as i am lazy on finding the bugs myself.
-
+> A feature-rich local AI frontend for **KoboldAI** and **OpenRouter**, built with Flask + vanilla JS. Comes with semantic long-term memory, web search, persona/user loadouts, streaming responses, and a whole lot more. “This is my daily driver AI chat app I use for roleplay. It actually remembers shit from last year or many sessions atleast 15 recent sessions i hard coded. Don’t take it too seriously — if it breaks, tell me and I might fix it when I’m not busy.”
 ---
 
 ## 📸 Screenshots
@@ -10,7 +9,7 @@
 
 <table>
   <tr>
-    <td><img src="images/UI1.png" width="450"/></td>
+    <td><img src="images/UI1.png" width="450" height="1300"/></td>
     <td><img src="images/UI2.png" width="450"/></td>
   </tr>
   <tr>
@@ -29,9 +28,10 @@
 ## ✨ Features
 
 ### 🧠 Memory System
+- Recommended to use or turn on Ctx shift on models! (hybrid models like mamba and other mixed attention mechanism is not recommended as its finicky with kv cache! only use normal Standard Transformer or Vanilla Transformer. Its core mechanism is Global Self-Attention (or "Full Self-Attention"), where every token in a sequence can attend to every other token. still you can try using them hybrids test it out with this wrapper.)
 - **Short-term memory** — keeps recent conversation context in the prompt window
 - **Long-term memory** — stores past conversations and retrieves relevant ones semantically using **FAISS** vector search
-- **Ghost memory** — older messages are soft-archived and recalled only when relevant
+- **Ghost memory** — older messages are soft-archived and recalled only when relevant (Just a sliding window with a fancy name)
 - **Sanity Check (Stage 3)** — intent detection gate that filters memory recall using phrase embeddings, preventing irrelevant memory from bleeding into responses
 
 ### 🔍 Semantic Search & Retrieval
@@ -88,6 +88,7 @@
 ## 🚀 Getting Started
 
 ### Requirements
+- Not all settings is an all in one fit! You gotta know how to balance the filters and rerankers and embedding according or suited for your own systems and usage! The default settings here might not work for you.
 - Python 3.10+
 - Windows (launcher is a `.bat` file)
 - KoboldAI running locally **or** an OpenRouter API key
@@ -96,8 +97,8 @@
 
 1. Clone the repo:
 ```bash
-git clone https://github.com/yourusername/rivet.git
-cd rivet
+git clone https://github.com/yourusername/vela.git
+cd vela
 ```
 
 2. Run the launcher — it handles everything automatically:
@@ -116,6 +117,14 @@ The launcher will:
 ```bash
 pip install flask flask-cors fuzzywuzzy rapidfuzz requests python-dateutil ddgs tiktoken sentence-transformers faiss-cpu numpy beautifulsoup4
 ```
+
+---
+
+## ⚠️ A Note on Settings
+
+Every system is different — what works for me might not work for you. The default settings are a starting point, not a recommendation. Tweak the embedding models, reranker, and memory filters based on your own hardware and use case. When in doubt, start with the defaults and adjust one thing at a time.
+
+> 📺 A YouTube tutorial is coming eventually... maybe. No promises. (I'm busy gooning.)
 
 ---
 
@@ -151,6 +160,17 @@ All settings are managed through the **Settings & Controls** panel in the UI. Co
 - **NLI / Zeroshot:** DeBERTa, MiniLM, BART (via HuggingFace)
 - **Tokenization:** tiktoken
 - **Frontend:** HTML, CSS, Vanilla JS, Marked.js
+
+---
+
+## 🐛 Bug Reports
+
+Found something broken? Open a GitHub Issue and describe:
+- What you did
+- What happened
+- What you expected to happen
+
+I can't guarantee a fix but I'll look at it when I'm not being lazy 😭
 
 ---
 
