@@ -172,7 +172,7 @@ Found something broken? Open a GitHub Issue and describe:
 - What happened
 - What you expected to happen
 
-I can't guarantee a fix but I'll look at it when I'm not being lazy 😭
+I can't guarantee a fix but I'll look at it when I'm not being lazy.
 
 ---
 
