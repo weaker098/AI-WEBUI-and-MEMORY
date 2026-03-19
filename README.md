@@ -1,6 +1,6 @@
-# 🦊 Rivet — Local AI Chat Interface (note this my personal app i use daily don't take it too seriously if there are bugs report it to me.)
+# 🦊 Vela — Local AI Chat Interface (note this my personal app i use daily don't take it too seriously if there are bugs report it to me.)
 
-> A feature-rich local AI frontend for **KoboldAI** and **OpenRouter**, built with Flask + vanilla JS. Comes with semantic long-term memory, web search, persona/user loadouts, streaming responses, and a whole lot more.
+> A feature-rich local AI frontend for **KoboldAI** and **OpenRouter**, built with Flask + vanilla JS. Comes with semantic long-term memory, web search, persona/user loadouts, streaming responses, and a whole lot more. Sharing this cause i need feedbacks on what to improve as i am lazy on finding the bugs myself.
 
 ---
 
