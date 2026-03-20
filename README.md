@@ -1,6 +1,6 @@
 # 🦊 Korn UI — Local AI Chat Interface (note this my personal app i use daily don't take it too seriously if there are bugs report it to me.)
 
-> A feature-rich local AI frontend for **KoboldAI** and **OpenRouter**, built with Flask + vanilla JS. Comes with semantic long-term memory, web search, persona/user loadouts, streaming responses, and a whole lot more. “This is my daily driver AI chat app I use for roleplay. It actually remembers shit from last year or many sessions atleast 15 recent sessions i hard coded. Don’t take it too seriously — if it breaks, tell me and I might fix it when I’m not busy.”
+> A feature-rich local AI frontend for **KoboldAI** and **OpenRouter**, built with Flask + vanilla JS. Comes with semantic long-term memory, web search, persona/user loadouts, streaming responses, and a whole lot more. "This is my daily driver AI chat app I use for roleplay. It actually remembers shit from last year or many sessions atleast 15 recent sessions i hard coded. Don't take it too seriously — if it breaks, tell me and I might fix it when I'm not busy."
 ---
 
 ## 📸 Screenshots
@@ -31,6 +31,58 @@
 - **Short-term memory** — keeps recent conversation context in the prompt window
 - **Long-term memory** — stores past conversations and retrieves relevant ones semantically using **FAISS** vector search
 - **Ghost memory** — older messages are soft-archived and recalled only when relevant (Just a sliding window with a fancy name)
+
+---
+
+#### 📌 Basic Demo: How Sliding Window and Pinning Works
+
+As the conversation grows, older messages are progressively dropped to stay within the context limit. **Pinned slots** (system, file, persona, world info) are always preserved — only the rolling conversation history gets trimmed. Evicted messages get stored into the **FAISS index** for long-term semantic recall.
+
+**Turn 0 — Initial State**
+```
+——————————————————————— Sliding Window ———          FAISS/INDEX
+[0] system      + pinned                            assistant - hello
+[1] file        + pinned
+[2] persona     + pinned
+[3] world info  + pinned
+[4] user        - Hello.
+[5] assistant   - Hi
+[6] user        - how are you?
+[7] assistant   - im fine
+——————————————— ↓ incoming ↓ ———————————————
+```
+
+**Turn 1 — Oldest user message dropped**
+```
+——————————————————————— Sliding Window ———          FAISS/INDEX
+[0] system      + pinned                            user - Hello (stored)
+[1] file        + pinned
+[2] persona     + pinned
+[3] world info  + pinned
+[4] user        - Hello.   ✕ evicted  ctx shifts
+[5] assistant   - Hi
+[6] user        - how are you?
+[7] assistant   - im fine
+——————————————— ↓ incoming ↓ ———————————————
+```
+
+**Turn 2 — Assistant + user messages dropped**
+```
+——————————————————————— Sliding Window ———          FAISS/INDEX
+[0] system      + pinned                            assistant - Hi (stored)
+[1] file        + pinned                            user - Hello (stored)
+[2] persona     + pinned
+[3] world info  + pinned
+[5] assistant   ✕ evicted  ctx shifts
+[6] user        ✕ evicted  ctx shifts
+[7] assistant
+——————————————— ↓ incoming ↓ ———————————————
+```
+
+> **Key idea:** Pinned slots never get evicted. The conversation tail slides forward, dropping the oldest unpinned turns first — and those evicted messages get saved into the FAISS index so they can be semantically retrieved later when relevant.
+
+---
+
 - **Sanity Check (Stage 3)** — intent detection gate that filters memory recall using phrase embeddings, preventing irrelevant memory from bleeding into responses
 
 ### 🔍 Semantic Search & Retrieval
