@@ -37,6 +37,8 @@
 #### 📌 Basic Demo: How Sliding Window and Pinning Works
 
 As the conversation grows, older messages are progressively dropped to stay within the context limit. **Pinned slots** (system, file, persona, world info) are always preserved — only the rolling conversation history gets trimmed. Evicted messages get stored into the **FAISS index** for long-term semantic recall.
+
+
 ##APPLICABLE WITH CONTEXT SHIFT ONLY AND CONTEXT SHIFT MUST BE TURNED ON FOR THIS TO WORK>
 
 **Turn 0 — Initial State**
