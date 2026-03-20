@@ -17,14 +17,6 @@
     <td><img src="images/UI3.png" width="450"/></td>
     <td><img src="images/UI4.png" width="450"/></td>
   </tr>
-  <tr>
-    <td><img src="images/UI5.png" width="450"/></td>
-    <td><img src="images/UI6.png" width="450"/></td>
-  </tr>
-  <tr>
-    <td><img src="images/UI7.png" width="450"/></td>
-    <td><img src="images/UI8.png" width="450"/></td>
-  </tr>
 </table>
 
 </div>
