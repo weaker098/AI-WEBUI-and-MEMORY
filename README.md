@@ -30,7 +30,7 @@
 ### Requirements
 - Python **3.10+** (3.11 recommended — least problems with the libs)
 - Windows (launcher is a `.bat` file)
-- **KoboldAI** running locally **or** an **OpenRouter API key**
+- **KoboldAI** running locally **or** an **OpenRouter API key** or **Ollama Serve api**
 
 > ⚠️ Not all settings are one-size-fits-all. You'll need to balance the filters, rerankers, and embedding models for your own system and usage. Default settings are a starting point, not a recommendation.
 
