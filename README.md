@@ -184,7 +184,7 @@ As the conversation grows, older messages are dropped to stay within context lim
 | `Qwen2.5-Reranker-0.6B` / `4B` | Best quality, needs RAM |
 | `FlashRank` | External lib, ultra-fast |
 
-### 🖥️ Frontend
+### 🖥️ Frontend (IMAGE STILL UNSTABLE THO BUT MMPROJ KOBOLD WORKS)
 - Clean dark-themed UI with toast notifications and ripple effects
 - **Streaming responses** with abort support
 - **Markdown rendering** via Marked.js (GFM + tables + line breaks)
