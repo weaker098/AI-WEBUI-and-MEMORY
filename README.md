@@ -1,4 +1,4 @@
-# 🦊 Korn UI — Local AI Chat Interface (note this my personal app i use daily don't take it too seriously if there are bugs report it to me.)
+# 🦊 LOCAL AI MEMORY WRAPPER — Local AI Chat Interface (note this my personal app i use daily don't take it too seriously if there are bugs report it to me.)
 
 > A feature-rich local AI frontend for **KoboldAI** and **OpenRouter**, built with Flask + vanilla JS. Comes with semantic long-term memory, web search, persona/user loadouts, streaming responses, and a whole lot more. "This is my daily driver AI chat app I use for roleplay. It actually remembers shit from last year or many sessions atleast 15 recent sessions i hard coded. Don't take it too seriously — if it breaks, tell me and I might fix it when I'm not busy."
 ---
