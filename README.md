@@ -255,8 +255,6 @@ Each mode has **fully isolated sampler lanes** — temperature, top-P, max token
 
 Every system is different — what works for me might not work for you. Default settings are a starting point, not a recommendation. Tweak the embedding models, reranker, and memory filters based on your own hardware and use case. When in doubt, start with defaults and adjust one thing at a time.
 
-> 📺 A YouTube tutorial is coming eventually... maybe. No promises.
-
 ---
 
 ## 🐛 Bug Reports
