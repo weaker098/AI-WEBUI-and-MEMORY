@@ -1,0 +1,1840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Chat Interface</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@2.4.0/dist/purify.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="top-bar">
+        <button id="controlsBtn" onclick="openControlsModal()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 0 2l-.15.08a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l-.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1 0-2l.15.08a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            Settings & Controls
+        </button>
+    </div>
+
+    <div class="status-bar">
+        <div class="status-item"><span id="mainActiveCharacterName">Loading...</span></div>
+    </div>
+
+    <div id="chatlog" class="chatbox"></div>
+
+    <button id="scrollToBottomBtn" onclick="scrollToBottom()" title="Scroll to bottom">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+    </button>
+
+    <div class="input-container">
+        <div id="file-preview-container"></div>
+        <div class="input-box">
+            <button id="togglePanelsBtn" type="button" class="send-btn" title="Toggle Panels" onclick="togglePanels()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+            </button>
+            <button id="fileBtn" type="button" class="send-btn">📎</button>
+            <input type="file" id="fileInput" style="display: none;" accept="image/*, .txt, .html, .css, .js, .py, .json">
+            <textarea id="msg" placeholder="Type your message or attach a file..." rows="1"></textarea>
+            <button id="sendBtn" class="send-btn" onclick="send()">
+                <span id="sendBtnIcon">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-send"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </span>
+                <span id="sendBtnSpinner" class="spinner" style="display: none;"></span>
+            </button>
+        </div>
+    </div>
+
+    <div id="controlsModal" class="modal">
+        <div class="modal-content">
+            <h3>Settings & Controls</h3>
+            
+            <div class="controls-section">
+                <h4>Session Management</h4>
+                <div id="sessionListContainer"></div>
+                <div class="session-controls controls-grid">
+                    <button class="grid-btn" onclick="newSession()">➕ New</button>
+                    <button class="grid-btn" onclick="renameSession()">✏️ Rename Active</button>
+                </div>
+            </div>
+
+            <div class="controls-section">
+                <h4>Actions</h4>
+                <div class="controls-grid">
+                    <button class="grid-btn" onclick="openSystemPromptModal()">⚙️ System</button>
+                    <button class="grid-btn" onclick="openAppearanceModal()">🎨 Appearance & Names</button>
+                    <button class="grid-btn" onclick="openInjectMemoryModal()" title="Inject a silent memory block into the current session">💉 Inject Memory</button>
+                    <button class="grid-btn" onclick="openManageMemoryModal()" title="View, edit, or delete injected memories &amp; cached search results">📝 Memories &amp; Search Cache</button>
+                    <button class="grid-btn" onclick="openVisibleIntroModal()">💬 Manage Visible Intros</button>
+                    <button class="grid-btn" onclick="openTemperaturesModal()">🌡️ Temperatures</button>
+                    <button class="grid-btn" onclick="openSamplersModal()">🎛️ Samplers</button>
+                    <button class="grid-btn" onclick="openTokensModal()">🔧 Tokens</button>
+                    <button class="grid-btn" onclick="openAppSettingsModal()">⚙️ App Settings</button>
+                    <button class="grid-btn" onclick="openStreamingSettingsModal()">🐺 Streaming</button>
+                    <button class="grid-btn" onclick="openResonanceSettingsModal()">🧠 Memories</button>
+                    <button class="grid-btn" onclick="openSearchSettingsModal()">🔎 Search Settings</button>
+                    <button class="grid-btn" onclick="openFaissSettingsModal()">🗂️ Vector Indexing</button>
+                    <button class="grid-btn" onclick="openChunkingModal()">🧩 Chunking DLC</button>
+
+
+                </div>
+            </div>
+
+            <div class="modal-buttons">
+                <button onclick="closeControlsModal()" class="secondary-btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="appearanceModal" class="modal">
+        <div class="modal-content">
+            <h3>🎨 Appearance & Names</h3>
+            <p style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: -10px;">
+                Customize chat names, avatars, and colors. Names are sent to the AI for context.
+            </p>
+
+            <!-- ========== VANILLA MODE ========== -->
+            <div class="controls-section" style="border-bottom: 1px solid #444; padding-bottom: 15px; margin-bottom: 5px;">
+                <h4>🧼 Interface Mode</h4>
+                <p style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: -5px;">
+                    Strip back the fancy UI. Each step removes more flair — down to pure raw text.
+                </p>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+                    <button class="vanilla-mode-btn active shape-pill" data-mode="off" onclick="applyVanillaMode('off')" style="padding:5px 12px;">
+                        ✨ Full Fancy
+                    </button>
+                    <button class="vanilla-mode-btn shape-pill" data-mode="nametag-user" onclick="applyVanillaMode('nametag-user')" style="padding:5px 12px;">
+                        🏷️ User Tag Only
+                    </button>
+                    <button class="vanilla-mode-btn shape-pill" data-mode="nametag-both" onclick="applyVanillaMode('nametag-both')" style="padding:5px 12px;">
+                        🏷️🏷️ Both Tags
+                    </button>
+                    <button class="vanilla-mode-btn shape-pill" data-mode="nametag-noicon" onclick="applyVanillaMode('nametag-noicon')" style="padding:5px 12px;">
+                        🔤 Tags, No Icons
+                    </button>
+                    <button class="vanilla-mode-btn shape-pill" data-mode="pure" onclick="applyVanillaMode('pure')" style="padding:5px 12px;">
+                        ⬜ Pure Vanilla
+                    </button>
+                </div>
+                <p id="vanillaModeDesc" style="font-size: 0.78em; color: var(--secondary-text-color); margin-top: 8px; min-height: 2em;"></p>
+            </div>
+
+            <!-- ========== AI PERSONA AVATAR ========== -->
+            <div class="controls-section">
+                <h4>🤖 Active Persona Avatar</h4>
+                <p style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: -5px;">
+                    Avatar is linked to the current persona. Switching personas swaps the avatar automatically.
+                </p>
+                <div class="config-item" style="margin-bottom: 6px;">
+                    <label style="min-width: 130px;">Active Persona:</label>
+                    <span id="appearanceActivePersonaName" style="font-weight: bold; color: var(--accent-text-color);">Loading...</span>
+                </div>
+                <div class="config-item" style="align-items: flex-start; gap: 10px;">
+                    <label style="min-width: 130px; margin-top: 8px;">Persona Avatar:</label>
+                    <div style="display: flex; flex-direction: column; gap: 8px; flex: 1;">
+                        <div class="avatar-upload-row">
+                            <div class="avatar-preview" id="personaAvatarPreview">🤖</div>
+                            <input type="text" id="assistantAvatarInput" placeholder="e.g., 🐺" style="width: 80px; flex: none;">
+                            <button class="avatar-upload-btn" onclick="document.getElementById('personaAvatarFileInput').click()">📁 Upload Image</button>
+                            <button class="avatar-clear-btn" id="personaAvatarClearBtn" onclick="clearPersonaAvatar()">✕ Remove</button>
+                            <input type="file" id="personaAvatarFileInput" style="display:none;" accept="image/*">
+                        </div>
+                        <!-- Avatar Shape + Focus -->
+                        <div class="avatar-style-section">
+                            <div class="avatar-style-label">Shape</div>
+                            <div class="avatar-shape-pills" id="assistantShapePills">
+                                <button class="shape-pill" data-shape="circle" onclick="setAvatarShape('assistant','circle')">⬤ Circle</button>
+                                <button class="shape-pill" data-shape="rounded" onclick="setAvatarShape('assistant','rounded')">▣ Rounded</button>
+                                <button class="shape-pill" data-shape="square" onclick="setAvatarShape('assistant','square')">■ Square</button>
+                                <button class="shape-pill" data-shape="seamless" onclick="setAvatarShape('assistant','seamless')">✦ Seamless</button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== USER LOADOUTS ========== -->
+            <div class="controls-section" style="border-top: 1px solid #444; padding-top: 15px;">
+                <h4>👤 User Loadouts</h4>
+                <p style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: -5px;">
+                    Each loadout has a name and avatar. The user context is merged into the active persona's system prompt automatically.
+                </p>
+
+                <!-- Loadout Selector -->
+                <div class="config-item" style="margin-bottom: 10px;">
+                    <label style="min-width: 130px;">Active Loadout:</label>
+                    <select id="userLoadoutSelect" onchange="onLoadoutSelectChange()" style="flex: 1;"></select>
+                    <button class="avatar-upload-btn" onclick="switchToSelectedLoadout()" style="white-space:nowrap;">⚡ Switch</button>
+                </div>
+
+                <!-- Loadout Display Name -->
+                <div class="config-item">
+                    <label for="loadoutDisplayName" style="min-width: 130px;">Display Name:</label>
+                    <input type="text" id="loadoutDisplayName" placeholder="e.g., Jan, Alex, MyChar">
+                </div>
+
+                <!-- Loadout Avatar -->
+                <div class="config-item" style="align-items: flex-start; gap: 10px; margin-top: 6px;">
+                    <label style="min-width: 130px; margin-top: 8px;">User Avatar:</label>
+                    <div style="display: flex; flex-direction: column; gap: 8px; flex: 1;">
+                        <div class="avatar-upload-row">
+                            <div class="avatar-preview" id="userLoadoutAvatarPreview">❄️</div>
+                            <input type="text" id="userAvatarInput" placeholder="e.g., ❄️" style="width: 80px; flex: none;">
+                            <button class="avatar-upload-btn" onclick="document.getElementById('userLoadoutAvatarFileInput').click()">📁 Upload Image</button>
+                            <button class="avatar-clear-btn" id="userLoadoutAvatarClearBtn" onclick="clearUserLoadoutAvatar()">✕ Remove</button>
+                            <input type="file" id="userLoadoutAvatarFileInput" style="display:none;" accept="image/*">
+                        </div>
+                        <!-- Avatar Shape + Focus -->
+                        <div class="avatar-style-section">
+                            <div class="avatar-style-label">Shape</div>
+                            <div class="avatar-shape-pills" id="userShapePills">
+                                <button class="shape-pill" data-shape="circle" onclick="setAvatarShape('user','circle')">⬤ Circle</button>
+                                <button class="shape-pill" data-shape="rounded" onclick="setAvatarShape('user','rounded')">▣ Rounded</button>
+                                <button class="shape-pill" data-shape="square" onclick="setAvatarShape('user','square')">■ Square</button>
+                                <button class="shape-pill" data-shape="seamless" onclick="setAvatarShape('user','seamless')">✦ Seamless</button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Persona Prompt -->
+                <div class="config-item-column" style="margin-top: 10px;">
+                    <label for="loadoutPersonaPrompt">User Context (merged into system prompt):</label>
+                    <textarea id="loadoutPersonaPrompt" placeholder="e.g., The user is Alex, a software developer who loves dark humor and prefers concise answers." style="min-height: 80px; resize: vertical;"></textarea>
+                </div>
+
+                <!-- Loadout Actions -->
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px;">
+                    <button class="avatar-upload-btn" onclick="saveCurrentLoadout()" style="flex:1;">💾 Save Loadout</button>
+                    <button class="avatar-upload-btn" onclick="createNewLoadout()" style="flex:1;">➕ New Loadout</button>
+                    <button class="avatar-clear-btn" onclick="deleteSelectedLoadout()" style="flex:1; display:inline-block;">🗑 Delete</button>
+                </div>
+            </div>
+
+            <!-- ========== DISPLAY NAMES (Legacy compat) ========== -->
+            <div class="controls-section" style="border-top: 1px solid #444; padding-top: 15px;">
+                <h4>🏷️ Display Names</h4>
+                <div class="config-item">
+                    <label for="userNameInput" style="min-width: 130px;">Your Name:</label>
+                    <input type="text" id="userNameInput" placeholder="e.g., Jan">
+                </div>
+                <p style="font-size: 0.75em; color: var(--secondary-text-color); margin: 4px 0 0 134px; line-height: 1.5; opacity: 0.85;">
+                    🏷️ The real nametag — prepended to every message you send (e.g. <code>Jan: Good morning.</code>) so the AI always knows who's speaking. Also used to label your messages in memory recall (e.g. <code>[Jan][12:00]: ...</code>). Set automatically when switching loadouts.
+                </p>
+                <div class="config-item" style="margin-top: 8px;">
+                    <label for="assistantNameInput" style="min-width: 130px;">Assistant Name:</label>
+                    <input type="text" id="assistantNameInput" placeholder="Set by persona" readonly>
+                </div>
+                <div class="config-item" style="margin-top: 8px;">
+                    <label for="thinkingIndicatorInput" style="min-width: 130px;">Thinking Indicator:</label>
+                    <input type="text" id="thinkingIndicatorInput" placeholder="e.g., 🦊...">
+                </div>
+                <div class="slider-container" style="margin-top: 10px;">
+                    <label for="avatarSizeSlider">Avatar Size:</label>
+                    <input type="range" id="avatarSizeSlider" min="24" max="64" step="2" value="34">
+                    <span class="slider-value" id="avatarSizeValue">34px</span>
+                </div>
+                <div class="slider-container" style="margin-top: 10px;">
+                    <label for="fontSizeSlider">Chat Font Size:</label>
+                    <input type="range" id="fontSizeSlider" min="11" max="22" step="1" value="15">
+                    <span class="slider-value" id="fontSizeValue">15px</span>
+                </div>
+            </div>
+
+            <!-- ========== THINK BLOCK VISIBILITY ========== -->
+            <div class="controls-section" style="border-top: 1px solid #444; padding-top: 15px;">
+                <h4>🧠 Think Block Display</h4>
+                <p style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: -5px;">
+                    Control how the AI's internal reasoning blocks appear in chat.
+                </p>
+                <div class="config-item" style="gap: 10px;">
+                    <label style="min-width: 130px;">Visibility Mode:</label>
+                    <div style="display: flex; gap: 8px;">
+                        <button id="thinkVisibleBtn" class="shape-pill active" onclick="setThinkVisibility('visible')" style="padding: 5px 14px;">👁 Visible</button>
+                        <button id="thinkHiddenBtn" class="shape-pill" onclick="setThinkVisibility('hidden')" style="padding: 5px 14px;">🫥 Hidden</button>
+                    </div>
+                </div>
+                <p style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: 6px; margin-left: 130px;">
+                    <strong>Visible:</strong> shows a preview snippet — click to expand.<br>
+                    <strong>Hidden:</strong> shows only 🧠 icon with dots — click to peek.
+                </p>
+
+                <!-- Custom think tokens -->
+                <div style="border-top: 1px solid #333; margin-top: 12px; padding-top: 12px;">
+                    <div class="config-item" style="margin-bottom: 8px;">
+                        <label style="min-width: 130px; font-size: 0.88em;">Open Token:</label>
+                        <input type="text" id="thinkOpenTokenInput"
+                               placeholder="auto  (e.g. &lt;|thinking|&gt;)"
+                               style="font-family: monospace; font-size: 0.85em;">
+                    </div>
+                    <div class="config-item">
+                        <label style="min-width: 130px; font-size: 0.88em;">Close Token:</label>
+                        <input type="text" id="thinkCloseTokenInput"
+                               placeholder="auto  (e.g. &lt;|/thinking|&gt;)"
+                               style="font-family: monospace; font-size: 0.85em;">
+                    </div>
+                    <p style="font-size: 0.75em; color: var(--secondary-text-color); margin: 6px 0 0 130px; opacity: 0.8; line-height: 1.5;">
+                        Leave blank = auto (<code>&lt;think&gt;</code> / <code>&lt;/think&gt;</code>).
+                        Custom tokens are <strong>display-only</strong> — added on top of defaults, backend saves verbatim.
+                    </p>
+                </div>
+            </div>
+
+            <!-- ========== COLORS ========== -->
+            <div class="controls-section" style="border-top: 1px solid #444; padding-top: 15px;">
+                <h4>🎨 Assistant Text Colors</h4>
+                <div class="config-item">
+                    <label for="assistantPlainColor" style="min-width: 130px;">Normal Text:</label>
+                    <input type="color" id="assistantPlainColor">
+                </div>
+                <div class="config-item">
+                    <label for="assistantBoldColor" style="min-width: 130px;">Bold Text:</label>
+                    <input type="color" id="assistantBoldColor">
+                </div>
+                <div class="config-item">
+                    <label for="assistantItalicColor" style="min-width: 130px;">Italic Text:</label>
+                    <input type="color" id="assistantItalicColor">
+                </div>
+            </div>
+
+            <div class="modal-buttons">
+                <button onclick="saveAppearanceAndNameSettings()">Save Settings</button>
+                <button onclick="closeAppearanceModal()" class="secondary-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="systemPromptModal" class="modal">
+        <div class="modal-content persona-modal-content">
+            <h3>⚙️ System</h3>
+
+            <div class="persona-card-layout">
+                <!-- LEFT: Character Card -->
+                <div class="persona-card-left">
+                    <div class="persona-portrait-wrap">
+                        <div class="persona-portrait" id="personaModalPortrait">🤖</div>
+                        <div class="persona-portrait-name" id="personaModalPortraitName">—</div>
+                        <div class="persona-portrait-badge" id="personaModalActiveBadge" style="display:none;">✦ Active</div>
+                    </div>
+                    <div class="persona-list-scroll" id="personaListScroll">
+                        <!-- populated by JS -->
+                    </div>
+                    <div class="persona-new-row">
+                        <input type="text" id="newPersonaNameInput" placeholder="New persona name…">
+                        <button class="persona-new-btn" onclick="addNewPersona()" title="Create new persona">＋</button>
+                    </div>
+                </div>
+
+                <!-- RIGHT: Editor -->
+                <div class="persona-card-right">
+                    <div class="persona-editor-label">
+                        Editing: <span id="personaEditorLabel" style="color: var(--accent-color); font-weight:600;">—</span>
+                    </div>
+                    <textarea id="systemPromptInput" placeholder="Define the AI's persona and rules here. Example: 'You are Rivet, a sassy Lombax…'"></textarea>
+                </div>
+            </div>
+
+            <div class="modal-buttons">
+                <button onclick="setSystemPrompt()">💾 Save &amp; Set Active</button>
+                <button onclick="renameSelectedPersona()" class="secondary-btn" style="background:#2a3a5a; border:1px solid #3a5a9a;">✏️ Rename</button>
+                <button onclick="deleteSelectedPersona()" class="secondary-btn" style="background:#5a2a2a; border:1px solid var(--danger-color);">🗑 Delete</button>
+                <button onclick="closeSystemPromptModal()" class="secondary-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="injectMemoryModal" class="modal">
+        <div class="modal-content">
+            <h3>Inject Memory</h3>
+            <p style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: -10px;">This will be injected as a silent system message to provide long-term context or background for the AI.</p>
+            <textarea id="memoryInput" placeholder="Enter the long-term memory, context, or scene fragment here..."></textarea>
+            
+            <div class="summary-slider-container" style="margin-top: 15px;">
+                <label for="summaryLengthSlider">Summary Length: <span id="summaryLengthValue">200</span> words</label>
+                <input type="range" id="summaryLengthSlider" min="50" max="100000" value="200" step="50" style="width: 100%;">
+            </div>
+            
+            <div class="modal-buttons">
+                <button onclick="injectMemory()">Inject Memory</button>
+                <button onclick="closeInjectMemoryModal()" class="secondary-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="manageMemoryModal" class="modal">
+        <div class="modal-content">
+            <h3>📝 Memories &amp; Search Cache</h3>
+            <p style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: -10px;">Injected silent memories and cached search results for this session. Edit or delete them here.</p>
+            <div id="manageMemoryList" style="display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto;">
+            </div>
+            <div class="modal-buttons">
+                <button onclick="closeManageMemoryModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="editMemoryModal" class="modal">
+        <div class="modal-content">
+            <h3>Edit Memory Block</h3>
+            <p style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: -10px;">
+                You are editing a large context block.
+            </p>
+            <textarea id="editMemoryTextarea"></textarea>
+            <div style="display: flex; justify-content: space-between; align-items: center; color: var(--secondary-text-color); font-size: 0.8em;">
+                <span id="editMemoryStats">0 characters</span>
+                <div class="modal-buttons">
+                    <button onclick="saveEditedMemory()">Save Changes</button>
+                    <button onclick="closeEditMemoryModal()" class="secondary-btn">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="visibleIntroModal" class="modal">
+        <div class="modal-content">
+            <h3>💬 Manage Visible Intros</h3>
+            <p style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: -10px;">Manage or inject visible assistant messages that appear at the start of the chat.</p>
+
+            <div class="controls-section">
+                <h4>Current Visible Intros</h4>
+                <div id="manageVisibleIntroList" style="display: flex; flex-direction: column; gap: 10px; max-height: 200px; overflow-y: auto; border: 1px solid #444; border-radius: 6px; padding: 5px; background: var(--surface-color);">
+                </div>
+            </div>
+
+            <div class="controls-section">
+                <h4>Inject New Intro</h4>
+                <p style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: -10px;">This will be added as a *new* visible message at the start of the chat.</p>
+                <textarea id="visibleIntroInput" placeholder="Enter the new visible intro message, e.g., Hello! How can I help you today?" style="height: 120px; width: calc(100% - 20px); resize: vertical;"></textarea>
+            </div>
+            
+            <div class="modal-buttons">
+                <button onclick="submitVisibleIntro()">Inject New Intro</button>
+                <button onclick="closeVisibleIntroModal()" class="secondary-btn">Close</button>
+            </div>
+        </div>
+    </div>
+	
+	<div id="editVisibleIntroModal" class="modal">
+        <div class="modal-content">
+            <h3>Edit Visible Intro</h3>
+            <p style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: -10px;">
+                Modify the visible message that appears at the start of the chat.
+            </p>
+            <textarea id="editVisibleIntroTextarea" style="height: 200px; font-family: inherit;"></textarea>
+            <div class="modal-buttons">
+                <button onclick="saveEditedVisibleIntro()">Save Changes</button>
+                <button onclick="closeEditVisibleIntroModal()" class="secondary-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="temperaturesModal" class="modal">
+        <div class="modal-content">
+            <h3>🌡️ Temperature Settings</h3>
+            <p style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: -10px;">Adjust the creativity vs. predictability for different AI functions. Higher values are more random.</p>
+            
+            <div class="slider-container">
+                <label for="chatStreamTemp">Chat Response:</label>
+                <input type="range" id="chatStreamTemp" min="0" max="2" step="0.05">
+                <span class="slider-value" id="chatStreamTempValue">0.4</span>
+            </div>
+
+            <!-- Kobold-only temp — grayed out in OpenRouter mode -->
+            <div id="koboldOnlyTemps">
+                <div class="slider-container">
+                    <label for="summarizationTemp">Summarization:</label>
+                    <input type="range" id="summarizationTemp" min="0" max="2" step="0.05">
+                    <span class="slider-value" id="summarizationTempValue">0.1</span>
+                </div>
+            </div>
+
+            <div class="modal-buttons">
+                <button onclick="saveTemperatures()">Save Settings</button>
+                <button onclick="closeTemperaturesModal()" class="secondary-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="samplersModal" class="modal">
+        <div class="modal-content">
+            <h3>🎛️ Sampler Settings</h3>
+            <p style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: -10px;">
+                Fine-tune the token sampling process. Changes affect the next generation.
+            </p>
+
+            <div class="slider-container">
+                <label for="topP">Top-P (Nucleus):</label>
+                <input type="range" id="topP" min="0" max="1" step="0.01">
+                <span class="slider-value" id="topPValue">0.90</span>
+            </div>
+
+            <!-- Kobold-only samplers — grayed out in OpenRouter mode -->
+            <div id="koboldOnlySamplers">
+                <div class="slider-container">
+                    <label for="topK">Top-K: <span id="koboldOnlyBadge" style="display:none; font-size:0.75em; color:#888; font-style:italic;">(Kobold only)</span></label>
+                    <input type="range" id="topK" min="0" max="100" step="1">
+                    <span class="slider-value" id="topKValue">40</span>
+                </div>
+
+                <div class="slider-container">
+                    <label for="minP">Min-P:</label>
+                    <input type="range" id="minP" min="0" max="1" step="0.01">
+                    <span class="slider-value" id="minPValue">0.05</span>
+                </div>
+
+                <div class="slider-container">
+                    <label for="repetitionPenalty">Repetition Penalty:</label>
+                    <input type="range" id="repetitionPenalty" min="1" max="2" step="0.01"><!-- max was 1.5, OR spec allows up to 2.0 -->
+                    <span class="slider-value" id="repetitionPenaltyValue">1.10</span>
+                </div>
+            </div>
+
+            <div class="modal-buttons">
+                <button onclick="saveSamplerSettings()">Save Settings</button>
+                <button onclick="closeSamplersModal()" class="secondary-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="tokensModal" class="modal">
+        <div class="modal-content">
+            <h3>🔧 Token & Memory Settings</h3>
+            <p style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: -10px;">Control memory limits and the AI's response length.</p>
+            
+            <div class="slider-container">
+                <label for="maxChatMessages">Max Chat History:</label>
+                <input type="range" id="maxChatMessages" min="10" max="500" step="2">
+                <input type="number" id="maxChatMessagesNum" min="10" max="500" step="2"
+                       style="width:70px; padding:3px 6px; background:var(--button-bg); border:1px solid #555; border-radius:6px; color:var(--primary-text-color); font-size:0.9em; text-align:center;">
+            </div>
+            <p style="font-size: 0.75em; color: var(--secondary-text-color); margin: -6px 0 12px 0; opacity:0.8;">
+                ⚠️ Safe range: <strong>10–500</strong>, even numbers. High values = larger context, slower KV cache.
+            </p>
+
+            <div class="slider-container">
+                <label for="llmMaxTokens">LLM Max Response Tokens:</label>
+                <input type="range" id="llmMaxTokens" min="256" max="32768" step="128">
+                <input type="number" id="llmMaxTokensNum" min="256" max="32768" step="128"
+                       style="width:80px; padding:3px 6px; background:var(--button-bg); border:1px solid #555; border-radius:6px; color:var(--primary-text-color); font-size:0.9em; text-align:center;">
+            </div>
+            <p style="font-size: 0.75em; color: var(--secondary-text-color); margin: -6px 0 14px 0; opacity:0.8;">
+                ⚠️ Safe range: <strong>256–32768</strong>. Goes above your model's ctx? It'll just hit EOS naturally.
+            </p>
+
+            <div class="config-item" style="margin-top: 15px; border-top: 1px solid #444; padding-top: 15px;">
+                <label for="resonanceToggle">Enable Resonance Reflection:</label>
+                <input type="checkbox" id="resonanceToggle">
+            </div>
+
+            <div class="config-item" style="margin-top: 15px; border-top: 1px solid #444; padding-top: 15px;">
+                <label for="ghostMemoryToggle">Enable Ghost Memory (Sliding Window):</label>
+                <input type="checkbox" id="ghostMemoryToggle" checked>
+            </div>
+            <p style="font-size: 0.75em; color: var(--secondary-text-color); margin: -5px 0 0 20px; opacity:0.8;">
+                When OFF, old messages are never ghosted — the LLM sees full raw history. RAG/vector recall is unaffected.
+            </p>
+
+            <div class="modal-buttons">
+                <button onclick="saveTokenSettings()">Save Settings</button>
+                <button onclick="closeTokensModal()" class="secondary-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="appSettingsModal" class="modal">
+        <div class="modal-content">
+            <h3>⚙️ Application Settings</h3>
+            <p style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: -10px;">
+                Configure core application behavior. Some changes may require a page refresh to take full effect.
+            </p>
+
+            <div class="controls-section">
+                <h4>LLM Configuration</h4>
+
+                <!-- Backend Mode Selector -->
+                <div class="config-item" style="margin-bottom: 12px;">
+                    <label style="min-width: 120px; font-weight: bold;">Backend Mode:</label>
+                    <div style="display: flex; gap: 10px;">
+                        <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                            <input type="radio" name="backendMode" id="backendModeKobold" value="kobold">
+                            <span>🧩 Kobold / Local</span>
+                        </label>
+                        <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                            <input type="radio" name="backendMode" id="backendModeOpenRouter" value="openrouter">
+                            <span>🌐 OpenRouter</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- OpenRouter-only options (hidden when Kobold is selected) -->
+                <div id="openRouterOptions" style="display:none; background: #0d1a0d; border: 1px solid #2a4a2a; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px;">
+                    <p style="font-size:0.78em; color:#7ec87e; margin: 0 0 10px 0; font-weight:bold;">⚡ OpenRouter Extensions</p>
+                    <div class="config-item" style="margin-bottom: 8px;">
+                        <label for="reasoningEnabledToggle" style="cursor:pointer;">🧠 Reasoning <span style="font-size:0.78em; color:var(--secondary-text-color);">(injects reasoning: enabled into payload)</span></label>
+                        <input type="checkbox" id="reasoningEnabledToggle">
+                    </div>
+                    <div class="config-item">
+                        <label for="visionEnabledToggle" style="cursor:pointer;">🖼️ Vision / Image Upload <span style="font-size:0.78em; color:var(--secondary-text-color);">(shows image attach button)</span></label>
+                        <input type="checkbox" id="visionEnabledToggle">
+                    </div>
+                </div>
+
+                <!-- Endpoint: visible for both modes, placeholder swaps per mode -->
+                <div class="config-item">
+                    <label for="llmApiEndpoint" style="min-width: 120px;">API Endpoint:</label>
+                    <input type="text" id="llmApiEndpoint" placeholder="e.g., http://localhost:5001/v1/chat/completions">
+                </div>
+
+                <!-- Model Name: visible for both modes — required for Ollama, optional for KoboldCPP -->
+                <div class="config-item" style="margin-top: 10px;">
+                    <label for="llmModelName" style="min-width: 120px;">Model Name:</label>
+                    <input type="text" id="llmModelName" placeholder="e.g., llama3.2 (Ollama) — leave blank for KoboldCPP/LM Studio">
+                    <span id="koboldModelHint" style="font-size:0.78em; color:var(--secondary-text-color); margin-left:6px;">Optional — needed for Ollama</span>
+                </div>
+
+                <!-- OpenRouter-only fields: API Key -->
+                <div id="openRouterFields" style="display:none;">
+                    <div class="config-item" style="margin-top: 10px;">
+                        <label for="llmApiKey" style="min-width: 120px;">API Key:</label>
+                        <div style="display: flex; flex: 1; gap: 6px; align-items: center;">
+                            <input type="password" id="llmApiKey" placeholder="sk-or-..." style="flex: 1;">
+                            <button type="button" id="llmApiKeyRevealBtn" onclick="toggleApiKeyVisibility()"
+                                title="Show / hide API key"
+                                style="background: none; border: 1px solid #555; border-radius: 6px; padding: 4px 8px; cursor: pointer; color: var(--secondary-text-color); font-size: 1em; line-height: 1;">👁</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- API Profiles -->
+            <div class="controls-section">
+                <h4>📋 API Profiles</h4>
+                <p style="font-size: 0.85em; color: var(--secondary-text-color); margin: -8px 0 12px 0;">
+                    Save and switch between different API configurations — local, OpenRouter, free models, etc.
+                </p>
+                <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                    <select id="apiProfileSelect"
+                        style="flex:1; min-width:160px; padding:6px 10px; background:#1a1a2e; border:1px solid #333; border-radius:6px; color:#eee; font-size:0.9em;">
+                    </select>
+                    <button onclick="switchApiProfile()"
+                        style="padding:6px 12px; border-radius:6px; background:#1a2a1a; border:1px solid #3a5a3a; color:#7ec87e; cursor:pointer; font-size:0.85em; white-space:nowrap;">
+                        ⚡ Load
+                    </button>
+                    <button onclick="saveApiProfile()"
+                        style="padding:6px 12px; border-radius:6px; background:#1a1a2e; border:1px solid #444; color:#aaa; cursor:pointer; font-size:0.85em; white-space:nowrap;">
+                        💾 Save / New
+                    </button>
+                    <button onclick="deleteApiProfile()"
+                        style="padding:6px 12px; border-radius:6px; background:#2a1a1a; border:1px solid #5a3a3a; color:#e07a7a; cursor:pointer; font-size:0.85em; white-space:nowrap;">
+                        🗑 Delete
+                    </button>
+                </div>
+                <p id="apiProfileActiveBadge"
+                    style="font-size:0.78em; color:#7ec87e; margin:8px 0 0 0; min-height:1.2em;"></p>
+                <p style="font-size:0.78em; color:var(--secondary-text-color); margin:4px 0 0 0;">
+                    ⚡ <strong>Load</strong> applies a saved profile to the fields above. &nbsp;💾 <strong>Save / New</strong> snapshots the current fields — use an existing name to update it, or a new name to create it.
+                </p>
+            </div>
+
+            <div class="controls-section">
+                <h4>Scraping & Search</h4>
+                 <div class="config-item">
+                    <label for="enableScrapingToggle">Enable URL Scraping:</label>
+                    <input type="checkbox" id="enableScrapingToggle">
+                </div>
+                <div class="slider-container">
+                    <label for="scrapingWordLimit">Scraping Word Limit:</label>
+                    <input type="range" id="scrapingWordLimit" min="100" max="100000" step="50">
+                    <span class="slider-value" id="scrapingWordLimitValue">1000</span>
+                </div>
+                <div class="slider-container">
+                    <label for="searchMaxResults">Search Results:</label>
+                    <input type="range" id="searchMaxResults" min="1" max="15" step="1">
+                    <span class="slider-value" id="searchMaxResultsValue">5</span>
+                </div>
+            </div>
+
+            <div class="modal-buttons">
+                <button onclick="saveAppSettings()">Save Settings</button>
+                <button onclick="closeAppSettingsModal()" class="secondary-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="streamingSettingsModal" class="modal">
+        <div class="modal-content">
+            <h3>🐺 Streaming Speed Settings</h3>
+            <p style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: -10px;">
+                Adjust the "typing" speed of the AI's response. Values are in milliseconds (ms).
+            </p>
+
+            <!-- ON / OFF toggle -->
+            <div class="controls-section" style="border: 1px solid #333; border-radius: 8px; padding: 14px; margin-bottom: 16px; background: #0d1117;">
+                <h4 style="margin: 0 0 6px 0; font-size: 0.95em;">⚡ Streaming Delay Mode</h4>
+                <p style="font-size: 0.8em; color: var(--secondary-text-color); margin: 0 0 12px 0;">
+                    <strong>ON</strong> = typewriter effect, good for casual chat &amp; roleplay. &nbsp;
+                    <strong>OFF</strong> = raw TPS, tokens render instantly — best for coding.
+                </p>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;">
+                    <button id="streamDelayOnBtn" class="shape-pill" onclick="setStreamingDelayMode(true)"
+                            style="padding: 6px 18px; font-size: 0.9em;">✨ ON — Typewriter</button>
+                    <button id="streamDelayOffBtn" class="shape-pill" onclick="setStreamingDelayMode(false)"
+                            style="padding: 6px 18px; font-size: 0.9em;">⚡ OFF — Raw TPS</button>
+                </div>
+                <p id="streamDelayModeDesc" style="font-size: 0.8em; color: var(--secondary-text-color); margin: 0; min-height: 1.4em; font-style: italic;"></p>
+            </div>
+
+            <!-- Sliders (grayed when OFF) -->
+            <div id="streamDelaySliders">
+                <div class="slider-container">
+                    <label for="charDelay">Default (per character):</label>
+                    <input type="range" id="charDelay" min="0" max="100" step="1">
+                    <span class="slider-value" id="charDelayValue">15</span>
+                </div>
+
+                <div class="slider-container">
+                    <label for="punctuationDelay">Punctuation (. ! ? —):</label>
+                    <input type="range" id="punctuationDelay" min="0" max="500" step="10">
+                    <span class="slider-value" id="punctuationDelayValue">180</span>
+                </div>
+
+                <div class="slider-container">
+                    <label for="commaDelay">Comma (,):</label>
+                    <input type="range" id="commaDelay" min="0" max="500" step="10">
+                    <span class="slider-value" id="commaDelayValue">150</span>
+                </div>
+            </div>
+
+            <div class="modal-buttons">
+                <button onclick="saveStreamingSettings()">Save Settings</button>
+                <button onclick="closeStreamingSettingsModal()" class="secondary-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="resonanceSettingsModal" class="modal">
+        <div class="modal-content">
+            <h3>🧠 Resonance & Memory Recall (Vector Search)</h3>
+            <p style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: -10px;">
+                Configure how the AI recalls past messages using vector similarity.
+            </p>
+
+            <!-- Master-disabled banner — shown only when resonance_enabled is OFF -->
+            <div id="resonanceDisabledBanner" style="display:none; background:#2a1a0a; border:1px solid #8b4513; border-radius:6px; padding:10px 14px; margin-bottom:12px; font-size:0.85em; color:#e8a87c;">
+                ⚠️ <strong>Resonance is OFF</strong> — enable it in <em>Token Settings → Enable Resonance Reflection</em> for any of this to take effect. Settings are still editable and saved.
+            </div>
+
+            <!-- All settings body — grayed out when resonance master toggle is OFF -->
+            
+            <!-- ===== PIPELINE OVERVIEW BANNER ===== -->
+            <div style="margin: 8px 0 18px 0; padding: 10px 14px; background: #0d1117; border: 1px solid #2a3a4a; border-radius: 8px; font-size: 0.8em; color: #888; display:flex; align-items:center; flex-wrap:wrap; gap: 6px;">
+                <span style="color:#aaa; font-weight:bold; margin-right:4px;">Pipeline:</span>
+                <span style="color:#f7a87e; background:#f7a87e18; border:1px solid #f7a87e44; padding:2px 10px; border-radius:20px; white-space:nowrap;">1 · Intent Filter</span>
+                <span style="color:#555;">→</span>
+                <span style="color:#7eb8f7; background:#7eb8f718; border:1px solid #7eb8f744; padding:2px 10px; border-radius:20px; white-space:nowrap;">2 · FAISS Search</span>
+                <span style="color:#555;">→</span>
+                <span style="color:#7ef7c8; background:#7ef7c818; border:1px solid #7ef7c844; padding:2px 10px; border-radius:20px; white-space:nowrap;">3 · Content Filter</span>
+                <span style="color:#555;">→</span>
+                <span style="color:#c87ef7; background:#c87ef718; border:1px solid #c87ef744; padding:2px 10px; border-radius:20px; white-space:nowrap;">4 · Reranker</span>
+            </div>
+            <!-- ===== END PIPELINE OVERVIEW BANNER ===== -->
+<div id="resonanceSettingsBody" style="transition: opacity 0.2s;">
+
+            <!-- ===== RAW RAG MASTER SWITCH (top-level — controls everything below) ===== -->
+            <div class="controls-section" style="border: 2px solid #2a4a6a; border-radius: 10px; padding: 14px 16px; margin-bottom: 6px; background: #0a1520;">
+                <div class="rag-master-toggle-wrap">
+                    <label class="ios-toggle" title="Master switch — enable or disable all memory recall">
+                        <input type="checkbox" id="rawRagToggle" onchange="updateRawRagMasterState()">
+                        <span class="ios-toggle-slider"></span>
+                    </label>
+                    <div style="min-width: 0;">
+                        <span style="font-size: 1.0em; font-weight: bold; color: #7eb8f7; word-break: break-word;">⚡ Enable Memory Recall (Raw RAG)</span>
+                        <span style="display:inline-block; background:#7eb8f722; border:1px solid #7eb8f755; color:#7eb8f7; font-size:0.68em; font-weight:bold; padding:1px 8px; border-radius:12px; margin-left:6px; vertical-align:middle; letter-spacing:0.05em; white-space:nowrap;">MASTER SWITCH</span>
+                    </div>
+                </div>
+                <p style="font-size: 0.82em; color: var(--secondary-text-color); margin: 8px 0 10px 0;">
+                    Scans the index on <strong>every message</strong> — score threshold is the only gatekeeper. Low scores are silently discarded. Keep max recall at 1–2.
+                    <br><strong style="color:#f7c87e;">OFF = no memories are ever injected.</strong> Everything below is grayed out when this is off.
+                </p>
+
+                <!-- FAISS-off warning — shown when FAISS isn't indexing anything -->
+                <div id="faissOffBanner" style="display:none; background:#2a1a0a; border:1px solid #8b4513; border-radius:6px; padding:8px 12px; margin-top:4px; font-size:0.82em; color:#e8a87c;">
+                    ⚠️ <strong>FAISS indexing is OFF</strong> — messages aren't being indexed. Recall will only find old entries.
+                    Open <em>⚙️ Settings → 🗂️ Vector Indexing</em> and enable at least one indexing mode.
+                </div>
+
+                <div id="rawRagSubSettings" style="transition: opacity 0.2s;">
+                    <div class="slider-container" style="margin-top: 12px;">
+                        <label for="rawRagThreshold">Score Threshold (L2: lower = stricter / Cosine: higher = stricter):</label>
+                        <input type="range" id="rawRagThreshold" min="0.1" max="3.0" step="0.05"
+                               oninput="document.getElementById('rawRagThresholdValue').textContent = parseFloat(this.value).toFixed(2)">
+                        <span class="slider-value" id="rawRagThresholdValue">1.00</span>
+                    </div>
+                    <p style="font-size: 0.8em; color: var(--secondary-text-color); margin: -5px 0 10px 20px;">
+                        L2: start around <strong>1.0–1.2</strong>. Cosine: start around <strong>0.5–0.7</strong>. Tune by watching debug logs.
+                    </p>
+                    <div class="config-item" style="margin-top: 10px;">
+                        <label for="rawRagMaxRecall">Max Messages to Inject (1–3 recommended):</label>
+                        <input type="number" id="rawRagMaxRecall" min="1" max="5" step="1" style="width: 60px; padding: 4px 8px;">
+                    </div>
+                    <div class="config-item" style="margin-top: 12px;">
+                        <label for="pairedMemoryToggle">Paired Memory:</label>
+                        <input type="checkbox" id="pairedMemoryToggle">
+                    </div>
+                    <p style="font-size: 0.8em; color: var(--secondary-text-color); margin: -5px 0 10px 20px;">
+                        When ON, each recalled hit returns the full exchange — user + assistant reply together. Prevents "orphan" memories with no context.
+                    </p>
+                    <div class="slider-container" style="margin-top: 12px;">
+                        <label for="recalledMessageCharLimit">Recalled Message Char Limit:</label>
+                        <input type="range" id="recalledMessageCharLimit" min="1000" max="62000" step="1000">
+                        <span class="slider-value" id="recalledMessageCharLimitValue">30000</span>
+                    </div>
+                    <p style="font-size: 0.8em; color: var(--secondary-text-color); margin: -5px 0 10px 20px;">
+                        Max characters pulled from each recalled message. Lower = leaner injections.
+                    </p>
+                    <div style="margin-top: 12px;">
+                        <label style="display: block; font-size: 0.88em; color: var(--secondary-text-color); margin-bottom: 7px;">Injection Position:</label>
+                        <div style="display: flex; flex-direction: column; gap: 7px;">
+                            <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer;">
+                                <input type="radio" name="recallInjectionPosition" id="recallPositionAfter" value="after" checked style="margin-top: 3px; flex-shrink: 0;">
+                                <span style="font-size: 0.9em; line-height: 1.4;"><strong>After user</strong> — seamless, ~7–24 token cost next turn 🐥</span>
+                            </label>
+                            <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer;">
+                                <input type="radio" name="recallInjectionPosition" id="recallPositionBefore" value="before" style="margin-top: 3px; flex-shrink: 0;">
+                                <span style="font-size: 0.9em; line-height: 1.4;"><strong>Before user</strong> — higher recall quality, ~100–200 token tax next turn 🧠</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <!-- end rawRagSubSettings -->
+            </div>
+            <!-- ===== END RAW RAG MASTER SWITCH ===== -->
+
+            <!-- Everything below grays out when Raw RAG is OFF or FAISS is OFF -->
+            <div id="rawRagDependentBody" style="transition: opacity 0.2s;">
+
+            <div class="controls-section">
+                <h4>Controls</h4>
+                <div class="config-item" style="margin-top: 15px; border-top: 1px solid #444; padding-top: 15px;">
+                    <label for="ragPersistenceToggle">Enable Persistent RAG Memory:</label>
+                    <input type="checkbox" id="ragPersistenceToggle">
+                </div>
+                <p style="font-size: 0.8em; color: var(--secondary-text-color); margin: -5px 0 10px 20px;">
+                    If enabled, retrieved memories are permanently injected into the context window until replaced or the session ends.
+                </p>
+                
+                <div class="config-item" id="ragGhostPreservationRow">
+                    <label for="ragGhostPreservationToggle">Pin RAG Memory (Ghost Mode):</label>
+                    <input type="checkbox" id="ragGhostPreservationToggle">
+                </div>
+                <p id="ragGhostPreservationDesc" style="font-size: 0.8em; color: var(--secondary-text-color); margin: -5px 0 10px 20px;">
+                    If ON, RAG memory stays pinned. If OFF, it slides out naturally as conversation progresses (Natural Decay).
+                </p>
+            </div>
+
+            
+
+            <!-- ===== PRE-GATE: INTENT DETECTION (runs BEFORE FAISS) ===== -->
+            <div class="controls-section" style="border-top: 1px solid #444; margin-top: 10px; padding-top: 15px;">
+                <h4>🚦 Pre-Gate: Recall Intent Detection <span style="display:inline-block; background:#f7a87e22; border:1px solid #f7a87e55; color:#f7a87e; font-size:0.7em; font-weight:bold; padding:2px 9px; border-radius:12px; margin-left:8px; vertical-align:middle; letter-spacing:0.05em;">STEP 1</span></h4>
+                <p style="font-size: 0.8em; color: var(--secondary-text-color); margin: -5px 0 12px 0;">
+                    Runs <strong>before FAISS</strong> — cheaply blocks greetings and small talk so the vector search never fires.
+                    "Good morning" → blocked instantly. "Do you remember..." → FAISS runs.
+                </p>
+
+                <!-- Master Toggle -->
+                <div class="config-item" style="margin-top: 10px;">
+                    <label for="sanityCheckEnabledToggle">Enable Recall Filter (Pre-Gate + Content Check):</label>
+                    <input type="checkbox" id="sanityCheckEnabledToggle" onchange="updateSanityCheckUIState()">
+                </div>
+                <p style="font-size: 0.8em; color: var(--secondary-text-color); margin: -5px 0 10px 20px;">
+                    <strong>OFF:</strong> Every message hits FAISS (raw mode). <strong>ON:</strong> Intent gate + content filter wrap the pipeline.
+                </p>
+
+                <!-- Pre-Gate Body -->
+                <div id="sanityCheckSettingsBody" style="opacity:0.4; pointer-events:none; transition: opacity 0.2s;">
+
+                    <!-- Intent Detection sub-section -->
+                    <div class="controls-section" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #333;">
+                        <h5 style="color: #888; font-size: 0.9em; margin-bottom: 8px;">Intent Gate Settings</h5>
+
+                        <div class="config-item">
+                            <label for="sanityIntentEnabledToggle">Enable Intent Check:</label>
+                            <input type="checkbox" id="sanityIntentEnabledToggle" onchange="updatePipelineStatusDisplay()"><!-- BUG 6 FIX: was missing onchange — toggling intent check didn't update pipeline status display -->
+                        </div>
+                        <p style="font-size: 0.78em; color: var(--secondary-text-color); margin: -5px 0 10px 20px;">
+                            Blocks non-recall messages before FAISS. Disable only if you want every message to trigger recall.
+                        </p>
+
+                        <!-- ===== ZEROSHOT DLC ===== -->
+                        <div style="background:#0d1117; border:1px solid #2a3a2a; border-radius:8px; padding:12px; margin: 10px 0 14px 0;">
+                            <div class="config-item" style="margin-bottom: 6px;">
+                                <label for="zeroshotIntentToggle" style="color:#7ec87e; font-weight:bold;">🧪 Zeroshot NLI DLC:</label>
+                                <input type="checkbox" id="zeroshotIntentToggle" onchange="updateZeroshotUIState()">
+                            </div>
+                            <p style="font-size:0.78em; color:#6a9a6a; margin: -4px 0 10px 20px;">
+                                Replaces phrase embeddings with a dedicated NLI model for intent detection. Higher quality, uses extra RAM. <strong>OFF = vanilla fallback.</strong>
+                            </p>
+
+                            <!-- DLC body — grayed when toggle OFF -->
+                            <div id="zeroshotDlcBody" style="opacity:0.4; pointer-events:none; transition: opacity 0.2s;">
+
+                                <div class="config-item" style="margin-bottom:10px;">
+                                    <label for="zeroshotModelSelect" style="min-width:130px;">NLI Model:</label>
+                                    <select id="zeroshotModelSelect" style="background:#1a1a2e; border:1px solid #444; color:#eee; padding:4px 8px; border-radius:6px; font-size:0.88em;">
+                                        <option value="nli-minilm-l6">nli-MiniLM-L6 — 90MB ⚡ fastest all rounder but less accu</option>
+                                        <option value="distilbert-mnli">distilbert-mnli — 65MB 🥔 potato need adjustments</option>
+                                        <option value="deberta-xsmall">deberta-v3-xsmall — 142MB 🧠 small Recommended daily use</option>
+                                        <option value="deberta-base">deberta-v3-base — 280MB 🧠 better Seems enough</option>
+                                        <option value="bart-large-mnli">bart-large-mnli — 400MB 💀 overkill</option>
+                                    </select>
+                                </div>
+
+                                <div class="config-item" style="margin-bottom:10px;">
+                                    <label for="zeroshotCtxLength" style="min-width:130px;">Context Length:</label>
+                                    <input type="number" id="zeroshotCtxLength" value="512" min="64" max="512" step="64"
+                                           style="width:70px; padding:4px 8px; background:#1a1a2e; border:1px solid #444; border-radius:6px; color:#eee;">
+                                    <span style="color:#666; font-size:0.8em; margin-left:6px;">tokens (64–512)</span>
+                                </div>
+
+                                <div class="config-item" style="margin-bottom:8px;">
+                                    <label for="zeroshotThresholdEnabled">Enable Threshold Gating:</label>
+                                    <input type="checkbox" id="zeroshotThresholdEnabled" checked onchange="updateZeroshotThresholdState()">
+                                </div>
+                                <p style="font-size:0.78em; color:var(--secondary-text-color); margin:-4px 0 8px 20px;">
+                                    <strong>ON</strong> = blocks queries below threshold. <strong>OFF</strong> = scores only, never blocks (good for tuning).
+                                </p>
+
+                                <div id="zeroshotThresholdSliderRow" style="transition: opacity 0.2s;">
+                                    <div class="slider-container" style="margin-bottom:6px;">
+                                        <label for="zeroshotThreshold">Entailment Threshold:</label>
+                                        <input type="range" id="zeroshotThreshold" min="0.0" max="1.0" step="0.05" value="0.70"
+                                               oninput="document.getElementById('zeroshotThresholdValue').textContent = parseFloat(this.value).toFixed(2)">
+                                        <span class="slider-value" id="zeroshotThresholdValue">0.70</span>
+                                    </div>
+                                    <p style="font-size:0.78em; color:var(--secondary-text-color); margin:-4px 0 12px 20px;">
+                                        0.5–0.65 = loose, 0.70–0.80 = balanced, 0.85+ = strict.
+                                    </p>
+                                </div>
+
+                                <div class="config-item" style="margin-bottom:10px; align-items:flex-start; gap:12px;">
+                                    <label style="min-width:130px; padding-top:2px;">Aggregation:</label>
+                                    <div style="display:flex; flex-direction:column; gap:5px;">
+                                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                                            <input type="radio" name="zeroshotAggregation" id="zeroshotAggMax" value="max" checked>
+                                            <span><strong>Max</strong> — any hypothesis fires → pass 🐥 <span style="color:#666; font-size:0.85em;">(recall-friendly)</span></span>
+                                        </label>
+                                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                                            <input type="radio" name="zeroshotAggregation" id="zeroshotAggAvg" value="avg">
+                                            <span><strong>Average</strong> — consensus across all hypotheses 🧠 <span style="color:#666; font-size:0.85em;">(stricter)</span></span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div style="margin-bottom:10px;">
+                                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                                        <label style="font-size:0.85em; color:#9a9a9a; margin:0;">📝 Placebo Premise</label>
+                                        <span style="font-size:0.72em; background:#1a1a1a; border:1px solid #3a3a3a; color:#555; padding:1px 7px; border-radius:20px; font-style:italic; white-space:nowrap;">Does not do anything but suit yourself</span>
+                                    </div>
+                                    <input type="text" id="zeroshotPremise"
+                                           style="width:100%; padding:7px 10px; background:#1a1a2e; border:1px solid #333; border-radius:6px; color:#666; font-size:0.88em; font-style:italic; box-sizing:border-box;"
+                                           placeholder="do you remember when we talked about pizza?">
+                                    <p style="font-size:0.74em; color:#444; margin:3px 0 0 0; font-style:italic;">✨ Vibes only.</p>
+                                </div>
+
+                                <div style="margin-bottom:6px;">
+                                    <label style="display:block; margin-bottom:4px; font-size:0.85em; color:#9a9a9a; font-weight:bold;">
+                                        Hypotheses <span style="color:#555; font-weight:normal;">(one per line)</span>
+                                    </label>
+                                    <textarea id="zeroshotHypotheses" rows="4"
+                                              style="width:100%; padding:8px 10px; background:#1a1a2e; border:1px solid #3a6a3a; border-radius:6px; color:#ccc; font-size:0.88em; resize:vertical; font-family:inherit; box-sizing:border-box;"
+                                              placeholder="the user wants to recall a past conversation&#10;the user is asking about something discussed before&#10;the user wants to remember something from a previous chat"></textarea>
+                                    <p style="font-size:0.76em; color:#6a9a6a; margin:4px 0 0 0;">💡 Max mode = any one firing is enough to pass.</p>
+                                </div>
+
+                                <div style="margin-top:14px; padding-top:12px; border-top:1px dashed #2a3a2a;">
+                                    <button onclick="openZeroshotAdvancedModal()"
+                                            style="width:100%; background:#0d1117; border:1px solid #3a5a3a; color:#7ec87e; padding:8px 14px; border-radius:7px; font-size:0.85em; cursor:pointer; transition: all 0.2s;"
+                                            onmouseover="this.style.borderColor='#7ec87e'; this.style.background='#111827';"
+                                            onmouseout="this.style.borderColor='#3a5a3a'; this.style.background='#0d1117';">
+                                        ⚙️ Advanced NLI Settings
+                                    </button>
+                                    <p style="font-size:0.74em; color:#3a6a3a; margin:5px 0 0 0; text-align:center; font-style:italic;">Score floor, Top-N, per-model presets 🧪</p>
+                                </div>
+
+                            </div>
+                            <!-- end zeroshotDlcBody -->
+                        </div>
+                        <!-- ===== END ZEROSHOT DLC ===== -->
+
+                        <!-- Vanilla fallback — grayed when DLC is ON -->
+                        <div id="sanityVanillaBody" style="transition: opacity 0.2s;">
+                            <div class="slider-container" style="margin-top: 10px;">
+                                <label for="sanityIntentThreshold">Intent Threshold (similarity to recall phrases):</label>
+                                <input type="range" id="sanityIntentThreshold" min="0.0" max="1.0" step="0.05" value="0.40"
+                                       oninput="document.getElementById('sanityIntentThresholdValue').textContent = parseFloat(this.value).toFixed(2)">
+                                <span class="slider-value" id="sanityIntentThresholdValue">0.40</span>
+                            </div>
+                            <p style="font-size: 0.78em; color: var(--secondary-text-color); margin: -5px 0 10px 20px;">
+                                Lower (0.2–0.3) = loose. Higher (0.5–0.7) = strict. Default 0.40 is balanced.
+                            </p>
+
+                            <div style="margin-top: 12px;">
+                                <label for="sanityRecallPhrases" style="display: block; margin-bottom: 6px; font-weight: bold;">Recall Intent Phrases:</label>
+                                <textarea id="sanityRecallPhrases" rows="4"
+                                          style="width: 100%; padding: 8px; background: #1a1a2e; border: 1px solid #444; border-radius: 6px; color: #ccc; font-size: 0.88em; resize: vertical; font-family: inherit;"
+                                          placeholder="do you remember, what did we talk about, recall our conversation, ..."></textarea>
+                                <p style="font-size: 0.78em; color: var(--secondary-text-color); margin: 4px 0 0 0;">
+                                    💡 Comma-separated phrases that indicate recall intent.
+                                </p>
+                            </div>
+
+                            <div style="margin-top: 12px;">
+                                <label for="sanityNegativePhrases" style="display: block; margin-bottom: 6px; font-weight: bold;">Negative / Greeting Phrases:</label>
+                                <textarea id="sanityNegativePhrases" rows="3"
+                                          style="width: 100%; padding: 8px; background: #1a1a2e; border: 1px solid #444; border-radius: 6px; color: #ccc; font-size: 0.88em; resize: vertical; font-family: inherit;"
+                                          placeholder="good morning, good evening, hello there, how are you, what's up, ..."></textarea>
+                                <p style="font-size: 0.78em; color: var(--secondary-text-color); margin: 4px 0 0 0;">
+                                    🚫 Greetings that should <em>never</em> trigger recall — blocked even if recall score passes.
+                                </p>
+                            </div>
+                        </div>
+                        <!-- end sanityVanillaBody -->
+
+                    </div>
+                    <!-- end intent gate settings -->
+
+                </div>
+                <!-- End Pre-Gate Body -->
+            </div>
+            <!-- ===== END PRE-GATE ===== -->
+
+            <!-- ===== STAGE 2: CONTENT FILTER (cheap pre-filter — runs BEFORE reranker) ===== -->
+            <div class="controls-section" style="border-top: 1px solid #444; margin-top: 10px; padding-top: 15px;">
+                <h4>✅ Stage 2: Content Filter <span style="display:inline-block; background:#7ef7c822; border:1px solid #7ef7c855; color:#7ef7c8; font-size:0.7em; font-weight:bold; padding:2px 9px; border-radius:12px; margin-left:8px; vertical-align:middle; letter-spacing:0.05em;">STEP 3</span></h4>
+                <p style="font-size: 0.8em; color: var(--secondary-text-color); margin: -5px 0 12px 0;">
+                    Runs <strong>after FAISS, before Reranker</strong> — cheaply prunes irrelevant candidates using your active embedding model (zero extra RAM), so the Reranker only sees the best ones.
+                </p>
+
+                <!-- Content filter is part of the same master toggle — show/gray with sanityCheckSettingsBody -->
+                <div id="sanityContentFilterBody" style="opacity:0.4; pointer-events:none; transition: opacity 0.2s;">
+
+                    <div class="slider-container" style="margin-top: 8px;">
+                        <label for="sanityContentThreshold">Content Threshold (memory vs query similarity):</label>
+                        <input type="range" id="sanityContentThreshold" min="0.0" max="1.0" step="0.05" value="0.35"
+                               oninput="document.getElementById('sanityContentThresholdValue').textContent = parseFloat(this.value).toFixed(2)">
+                        <span class="slider-value" id="sanityContentThresholdValue">0.35</span>
+                    </div>
+                    <p style="font-size: 0.78em; color: var(--secondary-text-color); margin: -5px 0 10px 20px;">
+                        Lower (0.2–0.3) = permissive. Higher (0.4–0.6) = strict. Default 0.35 is balanced.
+                    </p>
+
+                    <div class="controls-section" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #333;">
+                        <div class="config-item">
+                            <label for="sanityShowScoresToggle">Show filter scores in results:</label>
+                            <input type="checkbox" id="sanityShowScoresToggle">
+                        </div>
+                        <p style="font-size: 0.78em; color: var(--secondary-text-color); margin: -5px 0 10px 20px;">
+                            Displays intent_score and sanity_score alongside faiss_score and reranker_score in recall results.
+                        </p>
+                    </div>
+
+                </div>
+                <!-- End Content Filter Body -->
+
+                <!-- Pipeline Status — always visible -->
+                <div style="margin-top: 15px; padding: 10px; background: #1a1a2e; border: 1px solid #444; border-radius: 6px;">
+                    <div style="font-size: 0.85em; color: #aaa; margin-bottom: 6px;"><strong>Current Pipeline:</strong></div>
+                    <div id="sanityPipelineStatus" style="font-size: 0.8em; color: #7eb8f7; font-family: monospace;">
+                        Pre-Gate: Intent ❌ → FAISS ✅ → Content Filter ❌ → Reranker ❌
+                    </div>
+                    <div style="font-size: 0.75em; color: #888; margin-top: 6px;">
+                        💡 Intent gate + Content filter share one master toggle. Reranker is independent and runs last.
+                    </div>
+                </div>
+
+                <div class="config-item" style="margin-top: 10px;">
+                    <label for="sanityBufferMultiplier" style="min-width: 200px;">Buffer Multiplier:</label>
+                    <input type="number" id="sanityBufferMultiplier" value="2.0" min="1.0" max="10.0" step="0.1" style="width: 80px;">
+                    <span style="font-size: 0.8em; color: #888; margin-left: 8px;">How many extra candidates FAISS fetches before the content filter prunes them (e.g. 2.0 = 2× top_k)</span>
+                </div>
+
+            </div>
+            <!-- ===== END STAGE 2 CONTENT FILTER ===== -->
+
+            <!-- ===== STAGE 3: RERANKER (final scoring — runs AFTER content filter) ===== -->
+            <div class="controls-section" style="border-top: 1px solid #444; margin-top: 10px; padding-top: 15px;">
+                <h4>🎯 Stage 3: Reranker (final word) <span style="display:inline-block; background:#c87ef722; border:1px solid #c87ef755; color:#c87ef7; font-size:0.7em; font-weight:bold; padding:2px 9px; border-radius:12px; margin-left:8px; vertical-align:middle; letter-spacing:0.05em;">STEP 4</span></h4>
+                <p style="font-size: 0.8em; color: var(--secondary-text-color); margin: -5px 0 12px 0;">
+                    <strong>Stage 1:</strong> FAISS retrieves candidates fast.
+                    <strong>Stage 2:</strong> Content Filter cheaply prunes the pool.
+                    <strong>Stage 3:</strong> Reranker precisely scores the survivors. Massive quality boost with minimal latency.
+                </p>
+
+                <div class="config-item" style="margin-top: 10px;">
+                    <label for="rerankerEnabledToggle">Enable Reranker (Final Scoring):</label>
+                    <input type="checkbox" id="rerankerEnabledToggle" onchange="updateRerankerUIState()">
+                </div>
+                <p style="font-size: 0.8em; color: var(--secondary-text-color); margin: -5px 0 10px 20px;">
+                    <strong>OFF:</strong> Pure FAISS + Content Filter (vanilla mode). <strong>ON:</strong> Content Filter → Reranker → best results.
+                </p>
+
+                <div id="rerankerSettingsBody" style="opacity:0.4; pointer-events:none; transition: opacity 0.2s;">
+
+                    <div class="controls-section" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #333;">
+                        <h5 style="color: #888; font-size: 0.9em; margin-bottom: 8px;">Model Selection</h5>
+                        <div class="config-item">
+                            <label for="rerankerModelSelect">Reranker Model:</label>
+                            <select id="rerankerModelSelect" onchange="updateRerankerCtxSliderVisibility(this.value)">
+                                <optgroup label="🚀 Ultra-Light (CPU Speed)">
+                                    <option value="flashrank">FlashRank (Ultra-fast, ~512 ctx)</option>
+                                    <option value="ms-marco-mini-v2">MS Marco Mini v2 (80MB, 512 ctx)</option>
+                                </optgroup>
+                                <optgroup label="⚖️ Balanced">
+                                    <option value="ms-marco-mini-v12">MS Marco Mini v12 (120MB, 512 ctx)</option>
+                                    <option value="bge-reranker-base">BGE Base (278MB, 512 ctx)</option>
+                                </optgroup>
+                                <optgroup label="🔥 High Context (8K-32K)">
+                                    <option value="bge-reranker-v2-m3">BGE v2 M3 (278MB, 8K ctx, multilingual) tested Daily Use and reliable </option>
+                                    <option value="jina-reranker-v2">Jina v2 (32K ctx, multilingual/PDF)</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <p style="font-size: 0.78em; color: var(--secondary-text-color); margin: 4px 0 10px 20px;">
+                            💡 FlashRank = blazing fast. Jina v2 = best 32K value with multilingual support.
+                        </p>
+
+                        <div id="rerankerCtxControl" class="slider-container" style="display:none; margin-top: 8px;">
+                            <label for="rerankerCtxSlider">Context Length: <span id="rerankerCtxValue">8192</span> tokens</label>
+                            <input type="range" id="rerankerCtxSlider" min="512" max="32768" step="512" value="8192"
+                                   oninput="document.getElementById('rerankerCtxValue').textContent = this.value">
+                            <p style="font-size: 0.75em; color: var(--secondary-text-color); margin: 4px 0 0 0;">
+                                ⚡ Lower = faster + less RAM. Higher = handles longer retrieved chunks.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="controls-section" style="margin-top: 12px;">
+                        <h5 style="color: #888; font-size: 0.9em; margin-bottom: 8px;">Retrieval Settings</h5>
+                        <div class="config-item">
+                            <label for="rerankerExpansionFactor">Expansion Factor (retrieve N× candidates for reranker):</label>
+                            <input type="number" id="rerankerExpansionFactor" min="1" max="10" step="1" value="3"
+                                   style="width: 60px; padding: 4px 8px;">
+                        </div>
+                        <p style="font-size: 0.78em; color: var(--secondary-text-color); margin: -5px 0 10px 20px;">
+                            Want 8 final results? FAISS retrieves 8×3 = 24 candidates, reranker picks best 8. Higher = better recall but slower.
+                        </p>
+                    </div>
+
+                    <div class="controls-section" style="margin-top: 12px;">
+                        <div class="slider-container">
+                            <label for="rerankerScoreThreshold">Score Threshold (min confidence to pass):</label>
+                            <input type="range" id="rerankerScoreThreshold" min="-1.0" max="3.0" step="0.1" value="0.0"
+                                   oninput="document.getElementById('rerankerScoreThresholdValue').textContent = parseFloat(this.value).toFixed(1)">
+                            <span class="slider-value" id="rerankerScoreThresholdValue">0.0</span>
+                        </div>
+                        <p style="font-size: 0.78em; color: var(--secondary-text-color); margin: -5px 0 10px 20px;">
+                            0.0 = keep all. Higher = stricter. Most rerankers score -1 to 3.
+                        </p>
+                    </div>
+
+                    <div class="controls-section" style="margin-top: 12px;">
+                        <div class="config-item">
+                            <label for="rerankerBatchSize">Batch Size (RAM vs Speed):</label>
+                            <input type="number" id="rerankerBatchSize" min="1" max="128" step="8" value="32"
+                                   style="width: 60px; padding: 4px 8px;">
+                        </div>
+                        <p style="font-size: 0.78em; color: var(--secondary-text-color); margin: -5px 0 10px 20px;">
+                            Higher = faster but more RAM. 32 is balanced. Use 8–16 if OOM errors.
+                        </p>
+                    </div>
+
+                </div>
+                <!-- End Reranker Body -->
+            </div>
+            <!-- ===== END RERANKER SETTINGS ===== -->
+
+            <!-- ===== MEMORY BLOCK FORMATTING ===== -->
+            <div class="controls-section" style="border-top: 1px solid #444; margin-top: 10px; padding-top: 10px;">
+<h4>Memory Block Formatting</h4>
+                <p style="font-size: 0.8em; color: var(--secondary-text-color); margin-top: -5px;">
+                    Customize the text that wraps recalled memories when injected into the AI's context. Change these to tokens like <code>[RECALL:]</code> for cleaner formatting.
+                </p>
+                <div class="config-item">
+                    <label for="memoryBlockHeaderInput" style="min-width: 140px;">Header (Start Token):</label>
+                    <input type="text" id="memoryBlockHeaderInput" placeholder="[RETRIEVED MEMORIES]">
+                </div>
+                <div class="config-item" style="margin-top: 10px;">
+                    <label for="memoryBlockCloserInput" style="min-width: 140px;">Closer (Stop Token):</label>
+                    <input type="text" id="memoryBlockCloserInput" placeholder="[/END MEMORIES]">
+                </div>
+                <p style="font-size: 0.75em; color: var(--secondary-text-color); margin-top: 8px; font-style: italic;">
+                    💡 Examples: <code>[RECALL:]</code> / <code>[/RECALL]</code>, <code>[MEMORY:]</code> / <code>[/MEMORY]</code>, <code><<FLASHBACK>></code> / <code><</FLASHBACK>></code>
+                </p>
+            </div>
+
+            
+
+            </div>
+            <!-- ===== END rawRagDependentBody ===== -->
+
+            </div>
+            <!-- ===== END resonanceSettingsBody ===== -->
+
+            <!-- ===== MEMORY SEARCH TEST ===== -->
+            <div class="controls-section" style="margin-top: 16px;">
+                <h4>🔎 Memory Search Test</h4>
+                <p style="font-size: 0.85em; color: var(--secondary-text-color); margin: -8px 0 12px 0;">
+                    Run a live FAISS query against the current session index. Useful for verifying recall quality and stage scores.
+                </p>
+                <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                    <input type="text" id="memorySearchInput" placeholder="Enter a search query..."
+                        style="flex:1; min-width:200px; padding:6px 10px; background:#1a1a2e; border:1px solid #333; border-radius:6px; color:#eee; font-size:0.9em;"
+                        onkeydown="if(event.key==='Enter') runMemorySearch()">
+                    <input type="number" id="memorySearchTopK" value="5" min="1" max="20"
+                        style="width:60px; padding:6px 8px; background:#1a1a2e; border:1px solid #333; border-radius:6px; color:#eee; font-size:0.9em;"
+                        title="Top K results">
+                    <button onclick="runMemorySearch()" style="padding:6px 14px; border-radius:6px; background:#2a2a4a; border:1px solid #444; color:#ccc; cursor:pointer; font-size:0.9em;">Search</button>
+                </div>
+                <div id="memorySearchResults" style="display:none; margin-top:10px; max-height:280px; overflow-y:auto;"></div>
+            </div>
+            <!-- ===== END MEMORY SEARCH TEST ===== -->
+            <div class="modal-buttons">
+                <button onclick="saveResonanceSettings()">Save Settings</button>
+                <button onclick="closeResonanceSettingsModal()" class="secondary-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="searchSettingsModal" class="modal">
+        <div class="modal-content">
+            <h3>🔎 Search & Scraping Settings</h3>
+            <p style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: -10px;">
+                Configure the agentic search tool and scraping behaviour.
+            </p>
+
+            <div class="controls-section">
+                <h4>Agent Tool Configuration</h4>
+                
+                <!-- Web Search Tool -->
+                <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #333;">
+                    <h5 style="color: #888; font-size: 0.9em; margin-bottom: 10px;">🌐 Web Search Tool</h5>
+                    <div class="config-item">
+                        <label for="searchToolTriggerInput" style="min-width: 140px;">Trigger Token:</label>
+                        <input type="text" id="searchToolTriggerInput" placeholder="<tool_search>">
+                    </div>
+                    <div class="config-item">
+                        <label for="searchToolCloserInput" style="min-width: 140px;">Closer Token:</label>
+                        <input type="text" id="searchToolCloserInput" placeholder="</tool_search>">
+                    </div>
+                    <p style="font-size: 0.8em; color: var(--secondary-text-color); margin: -5px 0 0 150px;">
+                        The exact tokens the AI emits to trigger a web search.
+                    </p>
+                </div>
+
+                <!-- Memory Recall Tool -->
+                <div style="margin-bottom: 20px;">
+                    <h5 style="color: #888; font-size: 0.9em; margin-bottom: 10px;">🧠 Memory Recall Tool</h5>
+                    <div class="config-item">
+                        <label for="recallToolTriggerInput" style="min-width: 140px;">Trigger Token:</label>
+                        <input type="text" id="recallToolTriggerInput" placeholder="[RECALL:">
+                    </div>
+                    <div class="config-item">
+                        <label for="recallToolCloserInput" style="min-width: 140px;">Closer Token:</label>
+                        <input type="text" id="recallToolCloserInput" placeholder="]">
+                    </div>
+                    <p style="font-size: 0.8em; color: var(--secondary-text-color); margin: -5px 0 0 150px;">
+                        The exact tokens the AI emits mid-sentence to search memories (e.g. <code>[RECALL: pizza preferences]</code>).
+                    </p>
+                </div>
+                
+                <div class="config-item" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #333;">
+                    <label for="searchResultHeaderInput" style="min-width: 140px;">Search Result Header:</label>
+                    <input type="text" id="searchResultHeaderInput" placeholder="[Search Results]:">
+                </div>
+                <div class="config-item">
+                    <label for="recallResultHeaderInput" style="min-width: 140px;">Recall Result Header:</label>
+                    <input type="text" id="recallResultHeaderInput" placeholder="[Recall Results]:">
+                </div>
+                <p style="font-size: 0.8em; color: var(--secondary-text-color); margin: -5px 0 10px 150px;">
+                    System headers injected before results. Used to auto-close thinking blocks and separate content visually.
+                </p>
+            </div>
+
+            <div class="controls-section">
+                <h4>Scraping</h4>
+                 <div class="config-item-column">
+                    <label for="scrapeableDomainsInput">Allowed Domains (comma-separated):</label>
+                    <textarea id="scrapeableDomainsInput" class="list-textarea" placeholder="wikipedia.org, fandom.com, ..."></textarea>
+                 </div>
+            </div>
+
+            <div class="controls-section">
+                <h4>Search Result Memory</h4>
+                <div class="config-item" style="margin-top: 10px;">
+                    <label for="persistSearchResultsToggle">Save Search Results to Memory:</label>
+                    <input type="checkbox" id="persistSearchResultsToggle">
+                </div>
+                <p style="font-size: 0.8em; color: var(--secondary-text-color); margin: -5px 0 10px 20px;">
+                    If ON, search results are saved into chat memory so the AI remembers what it found on the next turn.
+                </p>
+                <div class="config-item" style="margin-top: 5px;" id="searchPinnedRow">
+                    <label for="searchResultPinnedToggle">Pin Results (decay naturally):</label>
+                    <input type="checkbox" id="searchResultPinnedToggle">
+                </div>
+                <p style="font-size: 0.8em; color: var(--secondary-text-color); margin: -5px 0 10px 20px;" id="searchPinnedDesc">
+                    If ON, pinned results stay in the sliding window as long as possible, displaced only when the window fills. If OFF, they decay like normal messages.
+                </p>
+            </div>
+
+            <div class="modal-buttons">
+                <button onclick="saveSearchSettings()">Save Settings</button>
+                <button onclick="closeSearchSettingsModal()" class="secondary-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+          
+
+    <div id="faissSettingsModal" class="modal">
+        <div class="modal-content">
+            <h3>🗂️ Vector Indexing Settings (Faiss)</h3>
+            <p style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: -10px;">
+                Configure the automatic background indexing of "ghosted" messages for memory recall.
+            </p>
+    
+            <div class="controls-section">
+                <div class="config-item" style="margin-top: 15px;">
+                    <label for="faissPermanentIndexingToggle">Enable Permanent Indexing:</label>
+                    <input type="checkbox" id="faissPermanentIndexingToggle">
+                </div>
+                <p style="font-size: 0.8em; color: var(--secondary-text-color); margin: -5px 0 10px 20px;">
+                    If enabled, "ghosted" messages are saved to a file on disk for long-term memory.
+                </p>
+                <div class="config-item" style="margin-top: 10px;">
+                    <label for="alwaysIndexToggle">⚡ Always Index New Messages:</label>
+                    <input type="checkbox" id="alwaysIndexToggle">
+                </div>
+                <p style="font-size: 0.8em; color: var(--secondary-text-color); margin: -5px 0 10px 20px;">
+                    If ON, every new message is indexed into FAISS immediately — regardless of the sliding window or quota. Useful if you want nothing to ever slip through unindexed.
+                </p>
+            </div>
+			
+			<div class="controls-section">
+    <h4>Embedding Model</h4>
+    <div style="margin-top: 5px;">
+        <label for="embeddingModelSelect" style="display: block; font-size: 0.88em; color: var(--secondary-text-color); margin-bottom: 6px;">Select Model:</label>
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <select id="embeddingModelSelect" style="flex: 1; min-width: 0;">
+                <option value="nomic">Nomic AI (Heavy/Accurate - 768d) Most Accurate</option>
+                <option value="all-mpnet">All-MPNet-Base-v2 (Balanced - 768d) Mid Perf</option>
+                <option value="all-mini">All-MiniLM-L6 (Light/Fast - 384d) all rounder</option>
+                <option value="jina-base">Jina Base v2 (Balanced - 768d, 8K ctx) Recommended Local only</option>
+                <option value="jina-small">Jina Small v2 (Light/Fast - 512d, 8K ctx) Local only</option>
+            </select>
+            <span id="embeddingDimBadge" style="padding:2px 8px; background:var(--button-bg); border:1px solid #444; border-radius:12px; font-size:0.78em; color:var(--secondary-text-color); white-space:nowrap; font-family:monospace; flex-shrink:0;">768d</span>
+        </div>
+    </div>
+    <p style="font-size: 0.8em; color: var(--secondary-text-color); margin: -5px 0 10px 20px;">
+        Note: Switching models will automatically reset your current session's FAISS index to prevent dimension mismatch crashes.
+    </p>
+    <!-- Context length slider — only visible for high-ctx models -->
+    <div id="embeddingCtxControl" class="slider-container" style="display:none; margin-top: 8px;">
+        <label for="embeddingCtxSlider">Context Length: <span id="embeddingCtxValue">2048</span> tokens</label>
+        <input type="range" id="embeddingCtxSlider" min="512" max="8192" step="512" value="2048"
+               oninput="document.getElementById('embeddingCtxValue').textContent = this.value">
+        <p style="font-size: 0.75em; color: var(--secondary-text-color); margin: 4px 0 0 0;">
+            ⚡ Lower = faster indexing &amp; less memory. Only affects new embeddings — re-index if you change this.
+        </p>
+    </div>
+    <div class="config-item" style="margin-top: 10px;">
+        <label for="faissDistanceMetric">Distance Metric:</label>
+        <select id="faissDistanceMetric">
+            <option value="l2">L2 (Euclidean)</option>
+            <option value="cosine">Cosine Similarity</option>
+        </select>
+    </div>
+    <p style="font-size: 0.8em; color: var(--secondary-text-color); margin: -5px 0 10px 20px;">
+        Cosine is generally more accurate for sentence embeddings. Switching will wipe and rebuild indexes automatically.
+    </p>
+
+    <!-- ── Index Type ── -->
+    <div class="config-item" style="margin-top: 10px;">
+        <label for="faissIndexType">Index Type:</label>
+        <select id="faissIndexType" onchange="updateIndexTypeVisibility(this.value)">
+            <option value="flat">Flat (Exact — default)</option>
+            <option value="hnsw">HNSW (Approximate — fast at scale)</option>
+            <option value="ivf">IVF (Approximate — needs large library)</option>
+        </select>
+    </div>
+    <p style="font-size: 0.8em; color: var(--secondary-text-color); margin: -5px 0 6px 20px;">
+        Switching index type will wipe and rebuild all indexes automatically. <strong>IVF</strong> requires a large number of messages to train — it auto-falls back to Flat if the library is too small.
+    </p>
+
+    <!-- HNSW M slider — only shown when HNSW is selected -->
+    <div id="hnswMControl" style="display:none; margin: 4px 0 10px 0;">
+        <div class="slider-container">
+            <label for="hnswMSlider">HNSW M (graph connections): <span id="hnswMValue">32</span></label>
+            <input type="range" id="hnswMSlider" min="4" max="128" step="4" value="32"
+                   oninput="document.getElementById('hnswMValue').textContent = this.value">
+        </div>
+        <p style="font-size: 0.75em; color: var(--secondary-text-color); margin: 2px 0 0 20px; opacity:0.85;">
+            Higher M = better recall accuracy, more RAM. Default 32 is a good balance. Changing M forces a full reindex.
+        </p>
+    </div>
+
+    <!-- IVF nlist input — only shown when IVF is selected -->
+    <div id="ivfNlistControl" style="display:none; margin: 4px 0 10px 0;">
+        <div class="config-item">
+            <label for="ivfNlistNum">IVF Cluster Count (nlist):</label>
+            <input type="number" id="ivfNlistNum" min="1" max="65536" step="1" value="100"
+                   style="width:80px; padding:3px 6px; background:var(--button-bg); border:1px solid #555; border-radius:6px; color:var(--primary-text-color); font-size:0.9em; text-align:center;">
+        </div>
+        <p style="font-size: 0.75em; color: var(--secondary-text-color); margin: 2px 0 0 20px; opacity:0.85;">
+            Needs ≥ <strong>39 × nlist</strong> messages to train (default 100 = 3,900 messages minimum). Will silently fall back to Flat if your library is too small.
+        </p>
+    </div>
+
+    <!-- ── Asymmetric Embedding Prefixes ── -->
+    <div class="config-item" style="margin-top: 10px; align-items: flex-start; flex-direction: column; gap: 8px;">
+        <label style="font-weight: bold;">Embedding Prefixes:</label>
+        <div style="display: flex; gap: 6px;">
+            <button id="prefixModeAutoBtn" class="chunk-unit-btn active-unit" onclick="setPrefixMode('auto')">⚡ Auto</button>
+            <button id="prefixModeOffBtn"  class="chunk-unit-btn"             onclick="setPrefixMode('off')">🚫 Off</button>
+        </div>
+    </div>
+    <!-- Live prefix display — updates when model or mode changes -->
+    <div id="activePrefixBadge" style="margin: 6px 0 0 4px; padding: 7px 11px; background: var(--button-bg); border: 1px solid #333; border-radius: 6px; font-size: 0.78em; font-family: monospace; color: var(--secondary-text-color); line-height: 1.7;">
+        <!-- populated by updatePrefixDisplay() -->
+    </div>
+    <p style="font-size: 0.8em; color: var(--secondary-text-color); margin: 4px 0 0 20px;">
+        <strong>Auto</strong> applies model-specific query/document prefixes (recommended for Nomic &amp; Jina — they were trained asymmetrically).
+        <strong>Off</strong> disables all prefixes (safe for MiniLM / MPNet which are symmetric).
+        Changing this on Nomic or Jina will wipe stale indexes.
+    </p>
+</div>
+    
+            <div class="controls-section">
+                <div class="slider-container">
+                    <label for="faissIndexingQuota">Indexing Quota:</label>
+                    <input type="range" id="faissIndexingQuota" min="10" max="500" step="10">
+                    <input type="number" id="faissIndexingQuotaNum" min="10" max="500" step="10"
+                           style="width:65px; padding:3px 6px; background:var(--button-bg); border:1px solid #555; border-radius:6px; color:var(--primary-text-color); font-size:0.9em; text-align:center;">
+                </div>
+                <p style="font-size: 0.8em; color: var(--secondary-text-color); margin: -5px 0 4px 20px;">
+                    The number of new "ghosted" messages needed to trigger a background re-indexing.
+                </p>
+                <p style="font-size: 0.75em; color: var(--secondary-text-color); margin: 0 0 10px 20px; opacity:0.8;">
+                    ⚠️ Safe range: <strong>10–500</strong>. Lower = more frequent indexing. Higher = lazier but leaner.
+                </p>
+            </div>
+    
+            <div class="controls-section" style="border-top: 1px solid #444; margin-top: 10px; padding-top: 10px;">
+                <h4>Global Memory</h4>
+                <div class="config-item" style="margin-top: 5px;">
+                    <label for="globalMemoryToggle">Enable Global Memory:</label>
+                    <input type="checkbox" id="globalMemoryToggle">
+                    <div style="margin-left: auto; display: flex; gap: 6px; align-items: center;">
+                        <button id="rebuildIndexBtn" onclick="rebuildIndex()" title="Manually rebuild FAISS index (runs in background)" style="background: transparent; border: 1px solid #555; color: #aaa; padding: 3px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='#7eb8f7';this.style.color='#7eb8f7';" onmouseout="this.style.borderColor='#555';this.style.color='#aaa';">🔨 Rebuild Index</button>
+                        <button onclick="clearGlobalMemory()" title="Wipe global vector index" style="background: transparent; border: 1px solid #555; color: #aaa; padding: 3px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='var(--danger-color)';this.style.color='var(--danger-color)';" onmouseout="this.style.borderColor='#555';this.style.color='#aaa';">🗑️ Clear Index</button>
+                    </div>
+                </div>
+                <p style="font-size: 0.8em; color: var(--secondary-text-color); margin: -5px 0 4px 20px;">
+                    If ON, vector search will recall memories from multiple past sessions, creating a unified timeline.
+                </p>
+                <p style="font-size: 0.78em; color: var(--secondary-text-color); margin: 0 0 10px 20px; opacity: 0.75;">
+                    💡 <strong>Rebuild Index</strong> manually re-indexes your history without wiping anything — safe to run anytime if recall feels stale or after changing the session limit.
+                </p>
+                <div id="rebuildScopePicker" style="display:none; margin: 0 0 10px 0; background:#111827; border:1px solid #333; border-radius:6px; padding:8px 12px; font-size:0.85em; color:#ccc;">
+                    <span style="margin-right:8px;">Rebuild scope:</span>
+                    <label style="margin-right:10px; cursor:pointer;"><input type="radio" name="rebuildScope" value="all" checked style="margin-right:4px;">All (local + global)</label>
+                    <label style="margin-right:10px; cursor:pointer;"><input type="radio" name="rebuildScope" value="local" style="margin-right:4px;">Local only</label>
+                    <label style="cursor:pointer;"><input type="radio" name="rebuildScope" value="global" style="margin-right:4px;">Global only</label>
+                    <div style="margin-top:8px; display:flex; gap:8px;">
+                        <button onclick="confirmRebuildIndex()" style="background:#1e3a5f; border:1px solid #7eb8f7; color:#7eb8f7; padding:4px 14px; border-radius:5px; font-size:12px; cursor:pointer;">▶ Start Rebuild</button>
+                        <button onclick="document.getElementById('rebuildScopePicker').style.display='none'" style="background:transparent; border:1px solid #555; color:#888; padding:4px 10px; border-radius:5px; font-size:12px; cursor:pointer;">Cancel</button>
+                    </div>
+                </div>
+
+                <!-- Mode switcher -->
+                <div class="config-item" style="margin-top: 6px; margin-bottom: 8px;">
+                    <label style="font-size:0.9em;">Indexing Mode:</label>
+                    <div style="margin-left: auto; display: flex; background: #1a1a2e; border: 1px solid #444; border-radius: 8px; padding: 3px; gap: 3px;">
+                        <button id="globalModeAutoBtn"   onclick="toggleGlobalMode('auto')"
+                                style="padding: 4px 14px; border-radius: 6px; border: none; font-size: 0.82em; cursor: pointer; transition: all 0.18s;">
+                            Auto
+                        </button>
+                        <button id="globalModeManualBtn" onclick="toggleGlobalMode('manual')"
+                                style="padding: 4px 14px; border-radius: 6px; border: none; font-size: 0.82em; cursor: pointer; transition: all 0.18s;">
+                            Manual
+                        </button>
+                    </div>
+                </div>
+
+                <!-- AUTO panel -->
+                <div id="globalAutoPanel">
+                    <div class="config-item" style="gap: 8px;">
+                        <label for="globalMemoryLimitNum" style="font-size:0.9em;">Past Sessions to Search:</label>
+                        <input type="number" id="globalMemoryLimitNum" min="0" step="1"
+                               style="width:65px; padding:3px 6px; background:var(--button-bg); border:1px solid #555; border-radius:6px; color:var(--primary-text-color); font-size:0.9em; text-align:center;">
+                    </div>
+                    <p style="font-size: 0.75em; color: var(--secondary-text-color); margin: 2px 0 8px 20px; opacity:0.8;">
+                        Set to <strong>0</strong> for unlimited. Higher = wider recall, slower search.
+                    </p>
+                </div>
+
+                <!-- MANUAL panel -->
+                <div id="globalManualPanel" style="display:none;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                        <span style="font-size:0.85em; color:var(--secondary-text-color);">Select sessions to include in global index:</span>
+                        <div style="display:flex; gap:6px;">
+                            <button onclick="selectAllPinnedSessions(true)"  style="background:transparent; border:1px solid #555; color:#aaa; padding:2px 8px; border-radius:5px; font-size:11px; cursor:pointer;">All</button>
+                            <button onclick="selectAllPinnedSessions(false)" style="background:transparent; border:1px solid #555; color:#aaa; padding:2px 8px; border-radius:5px; font-size:11px; cursor:pointer;">None</button>
+                            <button onclick="loadPinnedSessionsList()" style="background:transparent; border:1px solid #555; color:#aaa; padding:2px 8px; border-radius:5px; font-size:11px; cursor:pointer;">↻</button>
+                        </div>
+                    </div>
+                    <div id="pinnedSessionsList"
+                         style="max-height:160px; overflow-y:auto; background:#111827; border:1px solid #333; border-radius:6px; padding:6px 10px; font-size:0.85em; color:#ccc;">
+                        <span style="opacity:0.5;">Loading sessions…</span>
+                    </div>
+                    <p style="font-size: 0.75em; color: var(--secondary-text-color); margin: 4px 0 4px 4px; opacity:0.8;">
+                        💡 Only checked sessions are indexed. Save settings to apply.
+                    </p>
+                </div>
+            </div>
+    
+            <div id="faissSavingBanner" style="display:none; background:#1a1a2e; border:1px solid #444; border-radius:6px; padding:10px 14px; font-size:0.88em; color:#ccc; margin-top:5px;">
+                <span id="faissSavingIcon" style="margin-right:8px;">⚙️</span>
+                <span id="faissSavingMsg">Saving...</span>
+                <span id="faissSavingWarning" style="display:block; margin-top:5px; color:#f90; font-size:0.85em;">⚠️ Do not close or refresh this page.</span>
+            </div>
+
+            <div class="modal-buttons">
+                <button id="faissSaveBtn" onclick="saveFaissSettings()">Save Settings</button>
+                <button id="faissCancelBtn" onclick="closeFaissSettingsModal()" class="secondary-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+	<div id="confirmationModal" class="modal" style="z-index:1100;">
+    <div class="modal-content" style="max-width: 400px; text-align: center; z-index:1101;">
+        <h3>⚠️ Are you sure?</h3>
+        <p id="confirmationMessage" style="color: var(--secondary-text-color);">
+            This action cannot be undone.
+        </p>
+        
+        <div class="modal-buttons" style="justify-content: center; gap: 15px; margin-top: 20px;">
+            <button id="confirmActionBtn" class="grid-btn delete-btn" style="background-color: var(--danger-color);">
+                Yes, Delete
+            </button>
+            <button onclick="closeConfirmationModal()" class="secondary-btn">
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
+    <div id="editMessageModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <h3>✏️ Edit Message</h3>
+            <p style="font-size: 0.9em; color: var(--secondary-text-color); margin-top: -10px;">
+                Edit the content of this message. Changes take effect immediately.
+            </p>
+            <textarea id="editMessageTextarea" style="min-height: 150px; max-height: 400px; resize: vertical; font-family: inherit; font-size: 15px;"></textarea>
+            <div class="modal-buttons">
+                <button onclick="saveEditedMessage()">Save Changes</button>
+                <button onclick="closeEditMessageModal()" class="secondary-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== CHUNKING DLC MODAL ===== -->
+    <div id="chunkingModal" class="modal">
+        <div class="modal-content">
+            <h3>🧩 Chunking DLC</h3>
+            <p style="font-size:0.9em; color:var(--secondary-text-color); margin-top:-10px;">
+                Split long content into smaller vectors for higher-precision recall.
+                <strong style="color:var(--accent-text-color);">OFF = 100% vanilla behavior.</strong>
+            </p>
+
+            <!-- Master Switch -->
+            <div class="controls-section">
+                <div class="config-item">
+                    <label for="chunkingEnabledToggle" style="font-weight:bold;">Enable Chunking DLC:</label>
+                    <input type="checkbox" id="chunkingEnabledToggle" onchange="updateChunkingDLCState()">
+                </div>
+                <p style="font-size:0.8em; color:var(--secondary-text-color); margin:-5px 0 0 20px;">
+                    Master switch. When OFF, the app behaves exactly as before — no performance cost.
+                </p>
+            </div>
+
+            <!-- DLC Body grayed out when master switch is OFF -->
+            <div id="chunkingDLCBody" style="opacity:0.4; pointer-events:none; transition: opacity 0.2s;">
+
+                <!-- Index System Content Immediately -->
+                <div class="controls-section">
+                    <div class="config-item">
+                        <label for="chunkIndexSystemToggle">Index System Content on Injection:</label>
+                        <input type="checkbox" id="chunkIndexSystemToggle">
+                    </div>
+                    <p style="font-size:0.8em; color:var(--secondary-text-color); margin:-5px 0 0 20px;">
+                        Persona, silent memory, and visible intros get indexed immediately when injected.
+                    </p>
+                </div>
+
+                <!-- Chunk Unit toggle + Size Limit -->
+                <div class="controls-section">
+                    <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+                        <label style="flex:1; font-weight:bold;">Chunk Unit:</label>
+                        <div style="display:flex; gap:6px;">
+                            <button id="chunkUnitTokensBtn" class="chunk-unit-btn active-unit" onclick="setChunkUnit('tokens')">Tokens</button>
+                            <button id="chunkUnitWordsBtn" class="chunk-unit-btn" onclick="setChunkUnit('words')">Words</button>
+                        </div>
+                    </div>
+                    <div class="config-item">
+                        <label for="chunkTokenLimit">Chunk Size Limit:</label>
+                        <div class="num-input-row">
+                            <button class="num-btn" onclick="nudgeInput('chunkTokenLimit', -50, 1, 100000, 'onChunkLimitChange')">−</button>
+                            <input type="number" id="chunkTokenLimit" min="1" max="100000" value="400"
+                                   oninput="onChunkLimitChange(this.value)" style="width:90px; text-align:center;">
+                            <button class="num-btn" onclick="nudgeInput('chunkTokenLimit', +50, 1, 100000, 'onChunkLimitChange')">+</button>
+                            <span id="chunkUnitLabel" style="color:var(--secondary-text-color); font-size:0.88em;">tokens</span>
+                        </div>
+                    </div>
+                    <p id="chunkWordEstimate" style="font-size:0.78em; color:var(--secondary-text-color); margin:6px 0 0 20px;">
+                        ≈ 308 words per chunk
+                    </p>
+                    <p style="font-size:0.78em; color:var(--secondary-text-color); margin:2px 0 0 20px;">
+                        Tip: 200–500 = precise recall. 1000–2000 = broader context chunks. No hard max — go wild.
+                    </p>
+                </div>
+
+                <!-- Overlap -->
+                <div class="controls-section">
+                    <div class="config-item">
+                        <label for="chunkOverlapTokens">Overlap:</label>
+                        <div class="num-input-row">
+                            <button class="num-btn" onclick="nudgeInput('chunkOverlapTokens', -10, 0, 10000)">−</button>
+                            <input type="number" id="chunkOverlapTokens" min="0" max="10000" value="100"
+                                   style="width:90px; text-align:center;">
+                            <button class="num-btn" onclick="nudgeInput('chunkOverlapTokens', +10, 0, 10000)">+</button>
+                            <span style="color:var(--secondary-text-color); font-size:0.88em;">tokens</span>
+                        </div>
+                    </div>
+                    <p style="font-size:0.8em; color:var(--secondary-text-color); margin:6px 0 0 20px;">
+                        Tokens carried from the tail of one chunk into the next. Prevents context loss at cuts. 0 = no overlap.
+                    </p>
+                </div>
+
+                <!-- Retrieval Mode -->
+                <div class="controls-section">
+                    <h4>Retrieval Mode</h4>
+                    <div class="config-item" style="margin-top:6px;">
+                        <label for="chunkRetrievalMode">Mode:</label>
+                        <select id="chunkRetrievalMode" onchange="updateLongContextVisibility()">
+                            <option value="precision">Precision — best matching chunk only</option>
+                            <option value="long_context">Long Context — reassemble full source</option>
+                        </select>
+                    </div>
+                    <p style="font-size:0.8em; color:var(--secondary-text-color); margin:4px 0 0 20px;">
+                        <strong>Precision:</strong> each chunk competes independently — only the best matching slice is returned.<br>
+                        <strong>Long Context:</strong> any chunk hit from a source reforms the full original message for complete context.
+                    </p>
+
+                    <!-- Long context sub-options -->
+                    <div id="longContextOptions" style="display:none; margin-top:10px; padding:10px 12px; background:#111827; border:1px solid #333; border-radius:6px;">
+                        <div class="config-item">
+                            <label for="chunkPinnedReassembleToggle">Pinned sources always reassemble:</label>
+                            <input type="checkbox" id="chunkPinnedReassembleToggle" checked>
+                        </div>
+                        <p style="font-size:0.78em; color:var(--secondary-text-color); margin:6px 0 0 0;">
+                            Any chunk hit from a pinned source always pulls the full original message regardless of score.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+            <!-- end DLC body -->
+
+            <div class="modal-buttons">
+                <button id="chunkingSaveBtn" onclick="saveChunkingSettings()">Save Settings</button>
+                <button onclick="closeChunkingModal()" class="secondary-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+    <!-- ===== END CHUNKING DLC MODAL ===== -->
+
+    <!-- ===== BUSY OVERLAY ===== -->
+    <div id="busyOverlay">
+        <div id="busyOverlayBox">
+            <div id="busySpinner"></div>
+            <div id="busyOverlayMsg">Working...</div>
+            <button id="busyCancelBtn" onclick="cancelRebuild()" style="display:none;">✕ Cancel</button>
+        </div>
+    </div>
+    <!-- ===== END BUSY OVERLAY ===== -->
+
+
+    <!-- ===== AVATAR CROPPER MODAL ===== -->
+    <div id="avatarCropperModal" class="modal">
+        <div class="modal-content" style="max-width:900px; border-radius:12px;">
+            <div style="text-align:center; margin-bottom:20px;">
+                <h3 style="margin-bottom:4px;">🎨 Avatar Cropper</h3>
+                <p style="color:var(--secondary-text-color); font-size:0.9em;">Drag to position • Scroll to zoom</p>
+            </div>
+
+            <!-- Upload section -->
+            <div style="background:var(--surface-color); border:2px dashed #333; border-radius:8px; padding:20px; text-align:center; margin-bottom:20px; cursor:pointer;" onclick="document.getElementById('avatarCropperFileInput').click();">
+                <p style="font-size:1.2em; margin-bottom:8px;">📷</p>
+                <button class="grid-btn" style="pointer-events:none;">Upload Image</button>
+                <p style="margin-top:8px; color:var(--secondary-text-color); font-size:0.85em;">Click to select an image</p>
+                <input type="file" id="avatarCropperFileInput" accept="image/*" style="display:none;">
+            </div>
+
+            <!-- Crop canvas container -->
+            <div id="avatarCropperContainer" style="display:none; background:var(--surface-color); border:1px solid #333; border-radius:8px; padding:20px; margin-bottom:20px;">
+                <div style="display:flex; gap:20px; align-items:flex-start;">
+                    <!-- Canvas -->
+                    <div style="position:relative; width:350px; height:350px; flex-shrink:0; overflow:hidden; border-radius:8px;">
+                        <canvas id="avatarCropperCanvas" style="width:100%; height:100%; display:block; border-radius:8px; background:#0d0d1a; cursor:grab; box-shadow:0 4px 16px rgba(0,0,0,0.3);"></canvas>
+                        <div id="avatarCropperShapeOverlay" class="avatar-crop-shape-overlay avatar-crop-overlay-circle"></div>
+                    </div>
+
+                    <!-- Controls -->
+                    <div style="flex:1; display:flex; flex-direction:column; gap:15px;">
+                        <!-- Zoom control -->
+                        <div style="background:var(--button-bg); padding:15px; border-radius:8px;">
+                            <label style="display:block; margin-bottom:8px; font-size:0.9em; color:var(--secondary-text-color);">🔍 Zoom Level</label>
+                            <div style="display:flex; gap:10px; align-items:center;">
+                                <input type="range" id="avatarCropperZoomSlider" min="100" max="300" value="100" style="flex:1; cursor:pointer;">
+                                <span id="avatarCropperZoomValue" style="font-weight:600; min-width:50px; text-align:center;">100%</span>
+                            </div>
+                        </div>
+
+                        <!-- Shape control -->
+                        <div style="background:var(--button-bg); padding:15px; border-radius:8px;">
+                            <label style="display:block; margin-bottom:8px; font-size:0.9em; color:var(--secondary-text-color);">⬡ Crop Shape</label>
+                            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                                <button class="avatar-cropper-shape-btn active" data-shape="circle" onclick="setAvatarCropperShape('circle')" style="padding:6px 14px; border-radius:20px; border:2px solid var(--accent-color); background:var(--surface-color); color:var(--primary-text-color); cursor:pointer; font-size:0.85em;">⬤ Circle</button>
+                                <button class="avatar-cropper-shape-btn" data-shape="rounded" onclick="setAvatarCropperShape('rounded')" style="padding:6px 14px; border-radius:20px; border:2px solid #444; background:var(--surface-color); color:var(--primary-text-color); cursor:pointer; font-size:0.85em;">▣ Rounded</button>
+                                <button class="avatar-cropper-shape-btn" data-shape="square" onclick="setAvatarCropperShape('square')" style="padding:6px 14px; border-radius:20px; border:2px solid #444; background:var(--surface-color); color:var(--primary-text-color); cursor:pointer; font-size:0.85em;">■ Square</button>
+                            </div>
+                        </div>
+
+                        <!-- Help text -->
+                        <div style="padding:12px; background:rgba(255,255,255,0.05); border-radius:4px; font-size:0.8em; color:var(--secondary-text-color); line-height:1.6;">
+                            <strong style="color:var(--primary-text-color);">💡 How to use:</strong><br>
+                            • Drag the image to reposition<br>
+                            • Use the slider or scroll to zoom<br>
+                            • Pick a crop shape above
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="modal-buttons">
+                <button onclick="saveAvatarCrop()" style="background:#28a745; color:white; border:none; padding:10px 24px; border-radius:8px; cursor:pointer; font-weight:600;">✓ Save & Close</button>
+                <button onclick="closeAvatarCropper()" class="secondary-btn">✕ Cancel</button>
+            </div>
+        </div>
+    </div>
+    <!-- ===== END AVATAR CROPPER MODAL ===== -->
+
+    <!-- ===== ZEROSHOT ADVANCED MODAL ===== -->
+    <div id="zeroshotAdvancedModal" class="modal" style="z-index:1200;">
+        <div class="modal-content" style="max-width:520px; background:#0d1117; border:1px solid #3a5a3a; border-radius:10px;">
+            <h3 style="color:#7ec87e; margin-bottom:4px;">⚙️ Advanced NLI Settings</h3>
+            <p style="font-size:0.82em; color:#4a7a4a; margin-top:0; margin-bottom:16px;">
+                Deep tuning for the Zeroshot DLC. Mess around at your own risk 🧪
+            </p>
+
+            <!-- Score Floor -->
+            <div class="controls-section" style="border:1px solid #1a2a1a; border-radius:8px; padding:12px; margin-bottom:12px; background:#111827;">
+                <h5 style="color:#7ec87e; font-size:0.9em; margin:0 0 6px 0;">🧹 Score Floor</h5>
+                <p style="font-size:0.78em; color:#4a7a4a; margin:0 0 10px 0;">
+                    Hypotheses scoring below this are dropped before aggregation. Stops one dumb hypothesis from tanking the average.
+                    <strong style="color:#6a9a6a;">0.0 = off.</strong>
+                </p>
+                <div class="slider-container">
+                    <label for="zsScoreFloor">Floor:</label>
+                    <input type="range" id="zsScoreFloor" min="0.0" max="0.5" step="0.01" value="0.10"
+                           oninput="document.getElementById('zsScoreFloorValue').textContent = parseFloat(this.value).toFixed(2); _updateZsPreview();">
+                    <span class="slider-value" id="zsScoreFloorValue">0.10</span>
+                </div>
+            </div>
+
+            <!-- Top-N Hypotheses -->
+            <div class="controls-section" style="border:1px solid #1a2a1a; border-radius:8px; padding:12px; margin-bottom:12px; background:#111827;">
+                <h5 style="color:#7ec87e; font-size:0.9em; margin:0 0 6px 0;">🏆 Top-N Hypotheses</h5>
+                <p style="font-size:0.78em; color:#4a7a4a; margin:0 0 10px 0;">
+                    Only use the top N highest-scoring hypotheses for aggregation. Useful when some hypotheses are weak.
+                    <strong style="color:#6a9a6a;">0 = use all.</strong>
+                </p>
+                <div class="config-item">
+                    <label for="zsTopN">Top N:</label>
+                    <input type="number" id="zsTopN" min="0" max="10" step="1" value="0"
+                           style="width:70px; padding:4px 8px; background:#1a1a2e; border:1px solid #444; border-radius:6px; color:#eee;">
+                    <span style="color:#4a7a4a; font-size:0.82em; margin-left:8px;">( 0 = use all hypotheses )</span>
+                </div>
+            </div>
+
+            <!-- Per-Model Presets -->
+            <div class="controls-section" style="border:1px solid #1a2a1a; border-radius:8px; padding:12px; margin-bottom:16px; background:#111827;">
+                <h5 style="color:#7ec87e; font-size:0.9em; margin:0 0 6px 0;">🎯 Load Model Preset</h5>
+                <p style="font-size:0.78em; color:#4a7a4a; margin:0 0 10px 0;">
+                    Auto-fills threshold, aggregation and score floor with values tuned for the selected model based on real test logs.
+                </p>
+                <div id="zsPresetButtons" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px;">
+                    <!-- populated by JS -->
+                </div>
+                <p style="font-size:0.74em; color:#3a5a3a; margin:4px 0 0 0; font-style:italic;">
+                    💡 Preset only fills the Advanced fields — hit Save to apply.
+                </p>
+            </div>
+
+            <!-- Current values preview -->
+            <div id="zsAdvancedPreview" style="background:#0a0f0a; border:1px solid #1a2a1a; border-radius:6px; padding:10px; font-size:0.78em; color:#4a7a4a; font-family:monospace; margin-bottom:16px;">
+                Loading...
+            </div>
+
+            <div class="modal-buttons" style="justify-content:space-between;">
+                <button onclick="saveZeroshotAdvanced()" style="background:#1a3a1a; border:1px solid #7ec87e; color:#7ec87e; padding:8px 20px; border-radius:7px; cursor:pointer;">💾 Save</button>
+                <button onclick="resetZeroshotAdvanced()" style="background:#1a1a0a; border:1px solid #7a7a00; color:#aaaa00; padding:8px 20px; border-radius:7px; cursor:pointer;">↺ Reset to Defaults</button>
+                <button onclick="closeZeroshotAdvancedModal()" class="secondary-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+    <!-- ===== END ZEROSHOT ADVANCED MODAL ===== -->
+
+    <!-- ===== INLINE PROMPT MODAL (replaces all browser prompt() calls) ===== -->
+    <div id="inlinePromptModal" class="modal" style="z-index:1150;">
+        <div class="modal-content" style="max-width:420px;">
+            <h3 id="inlinePromptTitle" style="margin-bottom:6px;">Rename</h3>
+            <p id="inlinePromptSubtitle" style="font-size:0.85em; color:var(--secondary-text-color); margin:0 0 14px 0;"></p>
+            <input type="text" id="inlinePromptInput"
+                   style="width:100%; box-sizing:border-box; padding:9px 12px; background:var(--button-bg); border:1px solid #555; border-radius:8px; color:var(--primary-text-color); font-size:1em;"
+                   placeholder="">
+            <div id="inlinePromptHint" style="font-size:0.75em; color:var(--secondary-text-color); margin-top:6px; min-height:1.2em;"></div>
+            <div class="modal-buttons" style="margin-top:16px;">
+                <button id="inlinePromptConfirmBtn">Confirm</button>
+                <button onclick="closeInlinePrompt()" class="secondary-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+    <!-- ===== END INLINE PROMPT MODAL ===== -->
+
+    <!-- Toast notification container -->
+    <div id="toast-container"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
