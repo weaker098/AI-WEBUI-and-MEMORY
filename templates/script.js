@@ -1257,6 +1257,8 @@ async function send() {
             } else {
                 displayMsg += `\n\n![Uploaded Image](${f.content})`;
             }
+        } else if (f.type.startsWith('video/')) {
+            displayMsg += `\n\n🎬 [Video: ${f.name}]`;
         } else {
             displayMsg += `\n\n[Attached File: ${f.name}]`;
         }
@@ -1303,10 +1305,68 @@ async function send() {
     const signal = _streamAbortController.signal;
     let fetchPromise;
 
-    const imageFiles = attachedFiles.filter(f => f.type.startsWith('image/'));
-    const nonImageFiles = attachedFiles.filter(f => !f.type.startsWith('image/'));
+    const videoFiles   = attachedFiles.filter(f => f.type.startsWith('video/'));
+    const imageFiles   = attachedFiles.filter(f => f.type.startsWith('image/'));
+    const nonMediaFiles = attachedFiles.filter(f => !f.type.startsWith('image/') && !f.type.startsWith('video/'));
 
-    if (imageFiles.length === 1 && nonImageFiles.length === 0) {
+    if (videoFiles.length >= 1) {
+        // ── Video path — always wins when a video is present ─────────────────────
+        // Mixed attachments are handled gracefully:
+        //   + image files         → appended to frames array after extraction
+        //   + text/srt/pdf files  → content folded into the prompt as context
+        //   + multiple videos     → only first is processed, rest warned and dropped
+
+        if (videoFiles.length > 1) {
+            showToast(`⚠ Only the first video will be analyzed — multiple videos not supported.`, 'warn', 3500);
+        }
+
+        const videoFile = videoFiles[0];
+
+        // Fold any text file contents into the prompt (perfect for .srt subtitles)
+        let contextBlock = '';
+        if (nonMediaFiles.length > 0) {
+            contextBlock = nonMediaFiles.map(f =>
+                `\n\n--- Attached file: ${f.name} ---\n${f.content}`
+            ).join('');
+            showToast(`📝 Folding ${nonMediaFiles.length} text file(s) into prompt as context.`, 'info', 2800);
+        }
+
+        const _vidDuration = await getVideoDuration(videoFile);
+        const NUM_FRAMES = Math.min(20, Math.max(4, Math.round(_vidDuration / 6))); //VIDEO SETTINGS FRAMES
+        showToast(`🎬 Extracting ${NUM_FRAMES} frames from '${videoFile.name}'...`, 'info', 3500);
+        let frames;
+        try {
+            frames = await extractVideoFrames(videoFile, NUM_FRAMES);
+        } catch (err) {
+            console.error('Frame extraction failed:', err);
+            showToast(`Failed to extract frames: ${err.message || err}`, 'error', 3000);
+            throw err;
+        }
+
+        // Append any standalone images to the end of the frames array —
+        // they're all just base64 image_url parts to the backend anyway.
+        // This preserves the image pipeline exactly as-is, no KV side effects.
+        if (imageFiles.length > 0) {
+            const extraImages = imageFiles.map(f => f.content);
+            frames = [...frames, ...extraImages];
+            showToast(`🖼 Bundled ${imageFiles.length} image(s) with video frames.`, 'info', 2500);
+        }
+
+        const fpsLabel = `${frames.length} frames from '${videoFile.name}'` +
+            (imageFiles.length > 0 ? ` + ${imageFiles.length} image(s)` : '');
+        showToast(`✓ ${frames.length} total images ready — sending to model...`, 'success', 2500);
+        const videoPrompt = (msg || "Describe what happens in this video clip in detail.") + contextBlock;
+        fetchPromise = fetch("/analyze_video", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                frames,
+                prompt: videoPrompt,
+                fps_label: fpsLabel
+            }),
+            signal
+        });
+    } else if (imageFiles.length === 1 && nonMediaFiles.length === 0 && videoFiles.length === 0) {
         // Single image — use existing analyze_image path
         const imgFile = imageFiles[0];
         const imagePayload = imgFile.serverFilename
@@ -4271,7 +4331,7 @@ function setupFileUpload() {
 // ── Core multi-file processor ─────────────────────────────────────────────────
 const MAX_FILES = 10;
 const ACCEPTED_TYPES = [
-    'image/', 'text/', 'application/pdf',
+    'image/', 'video/', 'text/', 'application/pdf',
     'application/json', 'application/javascript'
 ];
 
@@ -4287,9 +4347,22 @@ async function _processIncomingFiles(files) {
     }
 
     for (const file of toProcess) {
-        if (file.size > 30 * 1024 * 1024) {
+        // Video files skip the size check — we only extract frames, never upload the raw file
+        if (file.size > 30 * 1024 * 1024 && !file.type.startsWith('video/')) {
             showToast(`'${file.name}' is too large (max 30MB).`, 'error', 2500);
             continue;
+        }
+
+        // ── Video: store a blob URL + keep the raw File for seekable frame extraction ──
+        if (file.type.startsWith('video/')) {
+            attachedFiles.push({
+                name: file.name,
+                content: URL.createObjectURL(file),  // blob URL used by video element
+                type: file.type,
+                serverFilename: null,
+                _videoFile: file                      // raw File reference for seeking
+            });
+            continue;  // skip FileReader block below
         }
 
         let serverFilename = null;
@@ -4350,6 +4423,8 @@ function displayFilePreview() {
         if (f.type.startsWith('image/')) {
             icon = '';
             previewImg = `<img src="${f.content}" alt="img" style="max-height:36px;max-width:54px;border-radius:4px;margin-right:6px;vertical-align:middle;">`;
+        } else if (f.type.startsWith('video/')) {
+            icon = '🎬 ';
         } else if (f.type === 'application/pdf') {
             icon = '📑 ';
         } else if (f.type.startsWith('text/')) {
@@ -4385,6 +4460,103 @@ function _wrapTextAsFile(text) {
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
+// =============================================================================
+// --- VIDEO DURATION HELPER ---
+// Pre-reads video metadata so we can calculate a sensible frame count
+// before committing to the full extraction. Falls back to 30s on error.
+// =============================================================================
+function getVideoDuration(videoFile) {
+    return new Promise((resolve) => {
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        video.src = videoFile.content;
+        video.addEventListener('loadedmetadata', () => {
+            resolve(isFinite(video.duration) ? video.duration : 30);
+        });
+        video.addEventListener('error', () => resolve(30)); // fallback for unreadable metadata
+    });
+}
+// =============================================================================
+
+// =============================================================================
+// --- VIDEO FRAME EXTRACTOR ---
+// Seeks through a video file using a hidden <video>+<canvas> and captures
+// numFrames evenly-spaced JPEG frames as base64 data URLs.
+// These are sent to /analyze_video as the `frames` array — the backend packs
+// them into OpenAI-style image_url content parts, which Ollama's /v1/chat/
+// completions compat layer maps to its internal images[] array automatically.
+// Resolution is capped at 512px on the longest side to keep payload size sane.
+// =============================================================================
+async function extractVideoFrames(videoFile, numFrames = 8) {
+    return new Promise((resolve, reject) => {
+        const video = document.createElement('video');
+        video.preload  = 'metadata';
+        video.muted    = true;
+        video.playsInline = true;
+
+        // Use the stored blob URL (created in _processIncomingFiles)
+        video.src = videoFile.content;
+
+        const canvas = document.createElement('canvas');
+        const ctx    = canvas.getContext('2d');
+        const frames = [];
+        let frameIndex = 0;
+        let timestamps = [];
+
+        video.addEventListener('error', () => {
+            reject(new Error(`Cannot load video: ${videoFile.name}`));
+        });
+
+        video.addEventListener('loadedmetadata', () => {
+            const duration = video.duration;
+            if (!isFinite(duration) || duration <= 0) {
+                reject(new Error('Video has no readable duration.'));
+                return;
+            }
+
+            // Cap resolution — no need to send 4K frames to a vision model
+            const MAX_DIM = 512;
+            const rawW = video.videoWidth  || 640;
+            const rawH = video.videoHeight || 360;
+            const scale = Math.min(1, MAX_DIM / Math.max(rawW, rawH));
+            canvas.width  = Math.round(rawW * scale);
+            canvas.height = Math.round(rawH * scale);
+
+            // Spread timestamps evenly; avoid seeking past 98% to dodge end-of-stream edge cases
+            const effectiveDuration = duration * 0.98;
+            if (numFrames === 1) {
+                timestamps = [effectiveDuration / 2];
+            } else {
+                timestamps = Array.from({ length: numFrames }, (_, i) =>
+                    (i / (numFrames - 1)) * effectiveDuration
+                );
+            }
+
+            seekNext();
+        });
+
+        video.addEventListener('seeked', () => {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            frames.push(canvas.toDataURL('image/jpeg', 0.82));
+            frameIndex++;
+            seekNext();
+        });
+
+        function seekNext() {
+            if (frameIndex >= timestamps.length) {
+                // Revoke the blob URL now that we're done — free memory
+                URL.revokeObjectURL(video.src);
+                resolve(frames);
+                return;
+            }
+            video.currentTime = timestamps[frameIndex];
+        }
+    });
+}
+// =============================================================================
+// --- END VIDEO FRAME EXTRACTOR ---
+// =============================================================================
+
 function removeAttachedFile(idx) {
     if (idx !== undefined) {
         attachedFiles.splice(idx, 1);
@@ -4403,7 +4575,7 @@ function _saveAttachedFilesToSession() {
             name: f.name,
             type: f.type,
             serverFilename: f.serverFilename,
-            content: f.type.startsWith('image/') ? '' : f.content
+            content: (f.type.startsWith('image/') || f.type.startsWith('video/')) ? '' : f.content
         }));
         sessionStorage.setItem('attachedFiles', JSON.stringify(slim));
     } catch (_) { /* quota exceeded — just skip */ }
